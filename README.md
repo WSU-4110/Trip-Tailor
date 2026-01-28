@@ -2,5 +2,5 @@
 
 ## Structure
 
-- 'backend/' = Flask backend API
+- 'backend/' - Flask backend API
 - 'frontend/' - client application
