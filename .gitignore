@@ -1,14 +1,46 @@
-# python caches
-
+# Python caches
 __pycache__/
 *.pyc
-
 
 # Virtual environments
 .venv/
 
 # Environment variables and secrets
 .env
-
+.env*.local
+g
 # MacOS
 .DS_Store
+
+# Node.js / Next.js
+node_modules/
+/.pnp
+.pnp.js
+
+# Next.js build outputs
+.next/
+/out/
+/build
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Vercel
+.vercel
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
