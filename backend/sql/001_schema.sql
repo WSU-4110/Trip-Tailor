@@ -17,3 +17,12 @@ CREATE TABLE IF NOT EXISTS places (
   country         TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Prevent duplicate places (same name in same city/region/country)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_places_identity
+ON places (name, city, region, country);
+
+-- Prevent duplicate activities (same title at same place)
+CREATE UNIQUE INDEX IF NOT EXISTS ux_activities_identity
+ON activities (place_id, title);
+
