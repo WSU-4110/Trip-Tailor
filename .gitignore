@@ -6,6 +6,8 @@ __pycache__/
 .venv/
 backend/venv/
 backend/.venv/
+backend/venv
+backend/.venv
 
 # Environment variables and secrets
 .env
