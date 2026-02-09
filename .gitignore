@@ -12,6 +12,9 @@ backend/.venv/
 # Environment variables and secrets
 .env
 .env*.local
+.env.*
+!.env.example
+
 
 # MacOS
 .DS_Store
