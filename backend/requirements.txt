@@ -7,3 +7,4 @@ MarkupSafe==3.0.3
 Werkzeug==3.1.5
 psycopg2-binary==2.9.11
 pytest==9.0.2
+requests==2.32.5
