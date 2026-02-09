@@ -3,6 +3,8 @@ import Image from 'next/image'
 import { sampleTrips } from '../data/sampleTrips'
 
 export default function TripsPage() {
+  const trips = Array.isArray(sampleTrips) ? sampleTrips : []
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Navigation */}
@@ -44,7 +46,7 @@ export default function TripsPage() {
       {/* Trip Cards Grid */}
       <section className="container mx-auto px-6 pb-20">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {sampleTrips.map((trip) => (
+          {trips.map((trip) => (
             <article
               key={trip.id}
               className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
