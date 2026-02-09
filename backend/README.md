@@ -27,6 +27,12 @@ Flask-based API for TripTailor
 All application tables live in the `triptailor` schema and are referenced explicitly
 in repository queries to avoid search_path ambiguity.
 
+### Running tests
+Use:
+python -m pytest
+to ensure tests run in the project virtual environment.
+
+
 ### Why this structure?
 This separation keeps the backend maintainable as the project grows:
 
