@@ -4,11 +4,18 @@ __pycache__/
 
 # Virtual environments
 .venv/
+venv/
+backend/venv/
+backend/.venv/
+
 
 # Environment variables and secrets
 .env
 .env*.local
-g
+.env.*
+!.env.example
+
+
 # MacOS
 .DS_Store
 
