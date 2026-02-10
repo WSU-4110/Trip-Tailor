@@ -1,6 +1,10 @@
+import Image from 'next/image'
 import Link from 'next/link'
+import { sampleTrips } from './data/sampleTrips'
 
 export default function Home() {
+  const trips = Array.isArray(sampleTrips) ? sampleTrips : []
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       {/* Navigation */}
@@ -54,6 +58,71 @@ export default function Home() {
             >
               Explore Trips
             </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Explore Trips Section */}
+      <section className="container mx-auto px-6 pb-20">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
+            <div>
+              <p className="text-primary-600 font-semibold">Explore Trips</p>
+              <h2 className="text-4xl font-bold text-gray-900 mt-2">
+                Handpicked adventures to inspire your next getaway
+              </h2>
+              <p className="text-gray-600 mt-3 max-w-2xl">
+                Browse a few favorites to see what TripTailor can build for you, then dive into the full collection.
+              </p>
+            </div>
+            <Link
+              href="/trips"
+              className="inline-flex items-center justify-center bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            >
+              View all trips
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {trips.slice(0, 3).map((trip) => (
+              <article
+                key={trip.id}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
+              >
+                <div className="relative h-48">
+                  <Image
+                    src={trip.imageUrl}
+                    alt={trip.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
+                    <span>{trip.country}</span>
+                    <span>{trip.duration}</span>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                    {trip.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {trip.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary-600 font-semibold">
+                      {trip.priceRange}
+                    </span>
+                    <Link
+                      href="/trips"
+                      className="text-primary-600 font-medium hover:text-primary-700 transition-colors"
+                    >
+                      Explore →
+                    </Link>
+                  </div>
+                </div>
+              </article>
+            ))}
           </div>
         </div>
       </section>
