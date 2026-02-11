@@ -1,17 +1,25 @@
 from flask import Flask, jsonify, request
+import os
+from .extensions import bcrypt, jwt
+
 
 from app.repositories.activities_repo import list_activities, get_activity_by_id
 from app.repositories.places_repo import list_places, get_place_by_id
 
-
 def create_app():
     app = Flask(__name__)
+
+    # Only used for auth; DB is handled by psycopg2 in app/db.py
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")
+
+    bcrypt.init_app(app)
+    jwt.init_app(app)
+
 
     @app.route("/health")
     def health():
         return {"status": "ok"}
 
-    # Debug convenience route (optional)
     @app.route("/testing")
     def testing():
         return jsonify({
@@ -19,19 +27,12 @@ def create_app():
             "activities": list_activities(limit=10, offset=0),
         })
 
-    # -------------------
-    # API v1 endpoints
-    # -------------------
-
     @app.get("/api/v1/activities")
     def api_list_activities():
         limit = request.args.get("limit", default=50, type=int)
         offset = request.args.get("offset", default=0, type=int)
-
-        # guardrails
         limit = max(1, min(limit, 200))
         offset = max(0, offset)
-
         return jsonify(list_activities(limit=limit, offset=offset))
 
     @app.get("/api/v1/activities/<activity_id>")
@@ -45,10 +46,8 @@ def create_app():
     def api_list_places():
         limit = request.args.get("limit", default=50, type=int)
         offset = request.args.get("offset", default=0, type=int)
-
         limit = max(1, min(limit, 200))
         offset = max(0, offset)
-
         return jsonify(list_places(limit=limit, offset=offset))
 
     @app.get("/api/v1/places/<place_id>")
