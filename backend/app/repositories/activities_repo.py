@@ -9,7 +9,7 @@ def list_activities(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
             estimated_cost_cents, duration_minutes, effort_level,
             accessibility_notes, wheelchair_accessible, family_friendly,
             source, source_url, created_at, updated_at
-        FROM triptailor.activities
+        FROM data.activities
         ORDER BY created_at DESC
         LIMIT %s OFFSET %s;
     """
@@ -26,7 +26,7 @@ def get_activity_by_id(activity_id: str) -> Optional[dict[str, Any]]:
             estimated_cost_cents, duration_minutes, effort_level,
             accessibility_notes, wheelchair_accessible, family_friendly,
             source, source_url, created_at, updated_at
-        FROM triptailor.activities
+        FROM data.activities
         WHERE id = %s;
     """
     with get_conn() as conn:

@@ -8,7 +8,7 @@ def list_places(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
             id, name, address_line1, address_line2, city, region,
             postal_code, country, latitude, longitude,
             phone, website_url, google_maps_url, created_at, updated_at
-        FROM triptailor.places
+        FROM data.places
         ORDER BY created_at DESC
         LIMIT %s OFFSET %s;
     """
@@ -24,7 +24,7 @@ def get_place_by_id(place_id: str) -> Optional[dict[str, Any]]:
             id, name, address_line1, address_line2, city, region,
             postal_code, country, latitude, longitude,
             phone, website_url, google_maps_url, created_at, updated_at
-        FROM triptailor.places
+        FROM data.places
         WHERE id = %s;
     """
     with get_conn() as conn:
@@ -42,7 +42,7 @@ def upsert_place_by_google_id(place: dict[str, Any]) -> Optional[dict[str, Any]]
         return None
 
     sql = """
-        INSERT INTO triptailor.places (
+        INSERT INTO data.places (
             name, address_line1, address_line2, city, region, postal_code, country,
             latitude, longitude, phone, website_url, google_maps_url,
             google_place_id, yelp_business_id
@@ -51,18 +51,18 @@ def upsert_place_by_google_id(place: dict[str, Any]) -> Optional[dict[str, Any]]
         ON CONFLICT (google_place_id)
         DO UPDATE SET
             name = EXCLUDED.name,
-            address_line1 = COALESCE(EXCLUDED.address_line1, triptailor.places.address_line1),
-            address_line2 = COALESCE(EXCLUDED.address_line2, triptailor.places.address_line2),
-            city = COALESCE(EXCLUDED.city, triptailor.places.city),
-            region = COALESCE(EXCLUDED.region, triptailor.places.region),
-            postal_code = COALESCE(EXCLUDED.postal_code, triptailor.places.postal_code),
-            country = COALESCE(EXCLUDED.country, triptailor.places.country),
-            latitude = COALESCE(EXCLUDED.latitude, triptailor.places.latitude),
-            longitude = COALESCE(EXCLUDED.longitude, triptailor.places.longitude),
-            phone = COALESCE(EXCLUDED.phone, triptailor.places.phone),
-            website_url = COALESCE(EXCLUDED.website_url, triptailor.places.website_url),
-            google_maps_url = COALESCE(EXCLUDED.google_maps_url, triptailor.places.google_maps_url),
-            yelp_business_id = COALESCE(EXCLUDED.yelp_business_id, triptailor.places.yelp_business_id),
+            address_line1 = COALESCE(EXCLUDED.address_line1, data.places.address_line1),
+            address_line2 = COALESCE(EXCLUDED.address_line2, data.places.address_line2),
+            city = COALESCE(EXCLUDED.city, data.places.city),
+            region = COALESCE(EXCLUDED.region, data.places.region),
+            postal_code = COALESCE(EXCLUDED.postal_code, data.places.postal_code),
+            country = COALESCE(EXCLUDED.country, data.places.country),
+            latitude = COALESCE(EXCLUDED.latitude, data.places.latitude),
+            longitude = COALESCE(EXCLUDED.longitude, data.places.longitude),
+            phone = COALESCE(EXCLUDED.phone, data.places.phone),
+            website_url = COALESCE(EXCLUDED.website_url, data.places.website_url),
+            google_maps_url = COALESCE(EXCLUDED.google_maps_url, data.places.google_maps_url),
+            yelp_business_id = COALESCE(EXCLUDED.yelp_business_id, data.places.yelp_business_id),
             updated_at = NOW()
         RETURNING *;
     """
