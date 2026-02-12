@@ -1,13 +1,13 @@
 -- sql/003_external_ids.sql
 -- Maps external API identifiers to canonical places / activities
 
-SET search_path TO triptailor;
+SET search_path TO data, public;
 
 -- External IDs for places
-CREATE TABLE IF NOT EXISTS place_external_ids (
+CREATE TABLE IF NOT EXISTS data.place_external_ids (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  place_id      UUID NOT NULL REFERENCES places(id) ON DELETE CASCADE,
+  place_id      UUID NOT NULL REFERENCES data.places(id) ON DELETE CASCADE,
 
   source        TEXT NOT NULL,        -- google, yelp, ticketmaster, etc.
   external_id   TEXT NOT NULL,        -- API-specific ID
@@ -20,10 +20,10 @@ CREATE TABLE IF NOT EXISTS place_external_ids (
 );
 
 -- External IDs for activities / events
-CREATE TABLE IF NOT EXISTS activity_external_ids (
+CREATE TABLE IF NOT EXISTS data.activity_external_ids (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  activity_id   UUID NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+  activity_id   UUID NOT NULL REFERENCES data.activities(id) ON DELETE CASCADE,
 
   source        TEXT NOT NULL,
   external_id   TEXT NOT NULL,
