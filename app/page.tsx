@@ -3,32 +3,6 @@ import Link from 'next/link'
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-      {/* Navigation */}
-      <nav className="container mx-auto px-6 py-6">
-        <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold text-primary-600">
-            TripTailor
-          </div>
-          <div className="flex items-center gap-6">
-            <Link 
-              href="/trips" 
-              className="text-gray-700 hover:text-primary-600 transition-colors"
-            >
-              Find Trips
-            </Link>
-            <Link 
-              href="/generate" 
-              className="text-gray-700 hover:text-primary-600 transition-colors"
-            >
-              Generate Itinerary
-            </Link>
-            <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-              Sign In
-            </button>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="container mx-auto px-6 py-20">
         <div className="max-w-4xl mx-auto text-center">
@@ -148,7 +122,8 @@ export default function Home() {
               <h4 className="font-semibold text-gray-900 mb-4">Product</h4>
               <ul className="space-y-2 text-gray-600">
                 <li><Link href="/generate" className="hover:text-primary-600">Generate Itinerary</Link></li>
-                <li><Link href="/trips" className="hover:text-primary-600">Find Trips</Link></li>
+                <li><Link href="/trips" className="hover:text-primary-600">Explore Trips</Link></li>
+                <li><Link href="/my-trips" className="hover:text-primary-600">My Trips</Link></li>
                 <li><Link href="/features" className="hover:text-primary-600">Features</Link></li>
               </ul>
             </div>
