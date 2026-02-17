@@ -24,6 +24,15 @@ const questions: Question[] = [
     text: "How far are you willing to travel?",
     options: ["1 - 500 miles", "In the continent", "Overseas"],
   },
+
+  {
+    text: "Who are you traveling with?",
+    options: ["Solo", "Partner", "Family", "Friends"],
+  },
+  {
+    text: "What climate do you prefer?",
+    options: ["Warm", "Cold", "Mild", "No preference"],
+  },
 ];
 
 export default function TripTailor() {
@@ -44,6 +53,16 @@ export default function TripTailor() {
             Q{i + 1}: {ans}
           </p>
         ))}
+
+        <button
+          onClick={() => {
+            setCurrent(0);
+            setAnswers([]);
+          }}
+          className="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          Restart Questionnaire
+        </button>
       </div>
     );
   }
