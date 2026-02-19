@@ -29,11 +29,40 @@ CREATE TABLE IF NOT EXISTS data.places (
   website_url      TEXT,
   google_maps_url  TEXT,
 
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-
+  -- provider identifiers (005 will only enforce constraints)
   google_place_id  TEXT,
-  yelp_business_id TEXT
+  yelp_business_id TEXT,
+
+  --- questionnaire/ranking fields (safe nullable wide schema for more accurate questionnaire) ---
+  category_primary TEXT,
+  categories       TEXT[],
+  tags             TEXT[],
+
+  rating           NUMERIC(3,2),
+  rating_count     INTEGER CHECK (rating_count >= 0),
+
+  price_level      SMALLINT CHECK (price_level BETWEEN 0 AND 4),
+
+  is_open_now      BOOLEAN,
+  hours_text       TEXT,
+  hours_json       JSONB,
+  timezone         TEXT,
+  utc_offset_minutes INTEGER,
+
+  neighborhood     TEXT,
+
+  wheelchair_accessible BOOLEAN,
+  family_friendly       BOOLEAN,
+  good_for_groups       BOOLEAN,
+  good_for_kids         BOOLEAN,
+  pet_friendly          BOOLEAN,
+
+  indoor_outdoor   TEXT,  -- indoor|outdoor|both|unknown
+  noise_level      TEXT,  -- quiet|average|loud|unknown
+  activity_level   TEXT,  -- low|medium|high|unknown
+
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Prevent duplicate places (same name in same city/region/country)

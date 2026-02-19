@@ -1,11 +1,7 @@
 -- 005_provider_ids.sql
--- Add provider identifiers to places for external API ingestion (Google/Yelp)
+-- Enforce provider identifier uniqueness for external API ingestion (Google/Yelp)
 
 BEGIN;
-
-ALTER TABLE data.places
-  ADD COLUMN IF NOT EXISTS google_place_id TEXT,
-  ADD COLUMN IF NOT EXISTS yelp_business_id TEXT;
 
 -- Prevent duplicate provider IDs (NULLs allowed; uniqueness enforced when present)
 DO $$
@@ -30,3 +26,13 @@ BEGIN
 END $$;
 
 COMMIT;
+
+-- auth schema table
+SET search_path TO auth, public;
+
+CREATE TABLE IF NOT EXISTS auth.users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);

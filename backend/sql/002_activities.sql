@@ -26,6 +26,16 @@ CREATE TABLE IF NOT EXISTS data.activities (
   wheelchair_accessible BOOLEAN,
   family_friendly       BOOLEAN,
 
+  --- questionnaire/vibe fields ---
+  good_for_groups       BOOLEAN,
+  good_for_kids         BOOLEAN,
+  pet_friendly          BOOLEAN,
+  indoor_outdoor        TEXT,  -- indoor|outdoor|both|unknown
+  noise_level           TEXT,  -- quiet|average|loud|unknown
+  activity_level        TEXT,  -- low|medium|high|unknown
+  reservations_required BOOLEAN,
+  ticket_required       BOOLEAN,
+
   -- links
   source               TEXT,   -- yelp/google/tripadvisor/manual
   source_url           TEXT,

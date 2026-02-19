@@ -22,4 +22,14 @@ CREATE INDEX IF NOT EXISTS idx_activities_activity_type
 CREATE INDEX IF NOT EXISTS idx_activities_category
   ON data.activities (category);
 
+--- array filtering based on tags/categories ---
+CREATE INDEX IF NOT EXISTS idx_places_categories_gin
+  ON data.places USING GIN (categories);
+
+CREATE INDEX IF NOT EXISTS idx_places_tags_gin
+  ON data.places USING GIN (tags);
+
+CREATE INDEX IF NOT EXISTS idx_activities_tags_gin
+  ON data.activities USING GIN (tags);
+
 COMMIT;
