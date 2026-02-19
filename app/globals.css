@@ -26,3 +26,11 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+/* Keep form fields readable: dark text on light background regardless of color-scheme */
+input,
+textarea,
+select {
+  color: #111827;
+  background-color: #fff;
+}
+

@@ -1,0 +1,20 @@
+Q1. Welcome to Trip Tailor! Are you ready to plan your trip?
+Yes No
+Q2. What kind of Trip do you envision?
+Relaxing High-Octane Somewhere in-between
+Q3. What would you like to do more in this trip?
+Sightseeing Interact Both
+Q4. How far are you willing to travel? 
+"1 - 500 miles" "In the continent" "overseas"
+Q5. How close to nature would you like this trip to be?
+"Very-close" "Mixed" "Indoor only" 
+Q6. Who will this Trip be for?
+Children Family Adult
+Q7. How much energy level are you willing to spend on this event:
+1 2 3 4 5
+Q8. How long do you want to spend on each site?
+0-8hours
+Q9. How many site do you want to go on the day of the trip?
+1 2 3 4 5
+Q10. Do you, or anyone you're with need disability accommodation?
+Yes No

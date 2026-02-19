@@ -10,7 +10,7 @@
 
 ## Then run these:
 - "git checkout dev"
-- "git reset --hard origin dev"
+- "git reset --hard origin/dev"
 - "git clean -fd" 
 - "git status" this should return this: On branch dev, Your branch is up to date with 'origin/dev', nothing to commit, working tree clean
 
