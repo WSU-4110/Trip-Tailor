@@ -20,10 +20,7 @@ const questions: Question[] = [
     text: "What would you like to do more in this trip?",
     options: ["Sightseeing", "Interact", "Both"],
   },
-  {
-    text: "How far are you willing to travel?",
-    options: ["1 - 500 miles", "In the continent", "Overseas"],
-  },
+  
   {
     text: "How close to nature would you like this trip to be?",
     options: ["Very-close", "Mixed", "Indoor only"],
@@ -38,7 +35,7 @@ const questions: Question[] = [
   },
   {
     text: "How long do you want to spend on each site?",
-    options: ["0-8 hours"],
+    options: ["0","1","2","3","4","5","6","7","8"],
   },
   {
     text: "How many sites do you want to go to on the day of the trip?",
