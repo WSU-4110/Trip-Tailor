@@ -59,7 +59,7 @@ export default function TripTailor() {
   if (current >= questions.length) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <h1 className="text-3xl font-bold mb-6">Trip Summary</h1>
+        <h1 className="text-3xl font-bold mb-6 text-black">Trip Summary</h1>
         {answers.map((ans, i) => (
           <p key={i} className="mb-2">
             Q{i + 1}: {ans}
@@ -71,7 +71,7 @@ export default function TripTailor() {
             setCurrent(0);
             setAnswers([]);
           }}
-          className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg hover:bg-white-700 transition"
+          className="mt-6 px-6 py-3 bg-green-600 text-gray-900 rounded-lg hover:bg-white-700 transition"
         >
           Restart Questionnaire
         </button>
@@ -83,18 +83,18 @@ export default function TripTailor() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900">
         Question {current + 1}
       </h1>
 
-      <p className="mb-6 text-lg">{question.text}</p>
+      <p className="mb-6 text-lg text-gray-900">{question.text}</p>
 
       <div className="flex flex-col gap-4">
         {question.options.map((option) => (
           <button
             key={option}
             onClick={() => handleAnswer(option)}
-            className="px-6 py-3 bg-blue-600 text-black rounded-lg hover:bg-white-700 transition"
+            className="px-6 py-3 bg-blue-600 text-gray-900 rounded-lg hover:bg-white-700 transition"
           >
             {option}
           </button>
