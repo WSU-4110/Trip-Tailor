@@ -13,25 +13,40 @@ const questions: Question[] = [
     options: ["Yes", "No"],
   },
   {
-    text: "What kind of trip do you envision?",
+    text: "What kind of Trip do you envision?",
     options: ["Relaxing", "High-Octane", "Somewhere in-between"],
   },
   {
-    text: "What would you like to do more on this trip?",
+    text: "What would you like to do more in this trip?",
     options: ["Sightseeing", "Interact", "Both"],
   },
   {
     text: "How far are you willing to travel?",
     options: ["1 - 500 miles", "In the continent", "Overseas"],
   },
-
   {
-    text: "Who are you traveling with?",
-    options: ["Solo", "Partner", "Family", "Friends"],
+    text: "How close to nature would you like this trip to be?",
+    options: ["Very-close", "Mixed", "Indoor only"],
   },
   {
-    text: "What climate do you prefer?",
-    options: ["Warm", "Cold", "Mild", "No preference"],
+    text: "Who will this Trip be for?",
+    options: ["Children", "Family", "Adult"],
+  },
+  {
+    text: "How much energy level are you willing to spend on this event?",
+    options: ["1", "2", "3", "4", "5"],
+  },
+  {
+    text: "How long do you want to spend on each site?",
+    options: ["0-8 hours"],
+  },
+  {
+    text: "How many sites do you want to go to on the day of the trip?",
+    options: ["1", "2", "3", "4", "5"],
+  },
+  {
+    text: "Do you, or anyone you're with, need disability accommodation?",
+    options: ["Yes", "No"],
   },
 ];
 
