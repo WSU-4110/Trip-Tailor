@@ -71,7 +71,7 @@ export default function TripTailor() {
             setCurrent(0);
             setAnswers([]);
           }}
-          className="mt-6 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+          className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg hover:bg-white-700 transition"
         >
           Restart Questionnaire
         </button>
@@ -94,7 +94,7 @@ export default function TripTailor() {
           <button
             key={option}
             onClick={() => handleAnswer(option)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="px-6 py-3 bg-blue-600 text-black rounded-lg hover:bg-white-700 transition"
           >
             {option}
           </button>
