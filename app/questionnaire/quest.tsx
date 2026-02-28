@@ -59,7 +59,42 @@ export default function TripTailor() {
 
   if (current >= questions.length) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-white flex p-6 gap-10">
+  
+  /* Progress Sidebar */
+  <div className="w-1/3">
+    <h2 className="text-xl font-bold mb-4 text-gray-900">Progress</h2>
+
+    {questions.map((q, index) => {
+      let statusIcon = "•";
+      let textColor = "text-gray-400";
+
+      if (answers[index]) {
+        statusIcon = "✓";
+        textColor = "text-green-600";
+      } else if (index === current) {
+        statusIcon = "➤";
+        textColor = "text-blue-600";
+      }
+
+      return (
+        <div key={index} className="mb-3">
+          <p className={`font-semibold ${textColor}`}>
+            {statusIcon} Step {index + 1}
+          </p>
+
+          {answers[index] && (
+            <p className="ml-6 text-sm text-gray-600">
+              Answer: {answers[index]}
+            </p>
+          )}
+        </div>
+      );
+    })}
+  </div>
+  
+  * Question Area *
+  <div className="flex-1 flex flex-col items-center justify-center"></div>
         <h1 className="text-3xl font-bold mb-6 text-black">Trip Summary</h1>
         {Object.entries(answers).map(([qIndex,ans])=>(
           <p key={qIndex}>
