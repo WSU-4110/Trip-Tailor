@@ -49,10 +49,11 @@ const questions: Question[] = [
 
 export default function TripTailor() {
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<{[key:number]:string}>({});
+
 
   const handleAnswer = (answer: string) => {
-    setAnswers([...answers, answer]);
+    setAnswers({...answers,[current]: answer,});
     setCurrent(current + 1);
   };
 
@@ -60,9 +61,9 @@ export default function TripTailor() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <h1 className="text-3xl font-bold mb-6 text-black">Trip Summary</h1>
-        {answers.map((ans, i) => (
-          <p key={i} className="mb-2">
-            Q{i + 1}: {ans}
+        {Object.entries(answers).map(([qIndex,ans])=>(
+          <p key={qIndex}>
+            Q{Number(qIndex)+1}:{ans}
           </p>
         ))}
 
