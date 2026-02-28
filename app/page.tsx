@@ -22,6 +22,14 @@ export default function Home() {
             >
               Create Your Itinerary
             </Link>
+
+            <Link
+              href="/questionnaire"
+              className="bg-cyan-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
+            >
+              Start Questionnaire
+            </Link>
+
             <Link
               href="/trips"
               className="bg-white text-primary-600 px-8 py-4 rounded-lg text-lg font-semibold border-2 border-primary-600 hover:bg-primary-50 transition-all transform hover:scale-105 shadow-lg"
