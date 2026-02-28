@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Question = {
   text: string;
@@ -50,7 +51,7 @@ const questions: Question[] = [
 export default function TripTailor() {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<{[key:number]:string}>({});
-
+  const router = useRouter();
 
   const handleAnswer = (answer: string) => {
     setAnswers({...answers,[current]: answer,});
@@ -106,7 +107,7 @@ export default function TripTailor() {
 
   {current >= questions.length ? (
 
-    /* ⭐ SUMMARY SCREEN */
+    /* SUMMARY SCREEN */
     <>
       <h1 className="text-3xl font-bold mb-6 text-black">
         Trip Summary
@@ -127,11 +128,18 @@ export default function TripTailor() {
       >
         Restart Questionnaire
       </button>
+      
+      <button
+      onClick={() => router.push("/")}
+      className="mt-4 px-6 py-3 bg-gray-800 text-white rounded-lg"
+    >
+      Return to Home Page
+    </button>
     </>
 
   ) : (
 
-    /* ⭐ QUESTION SCREEN */
+    /*  QUESTION SCREEN */
     <>
       <h1 className="text-2xl font-bold mb-6 text-gray-900">
         Question {current + 1}
