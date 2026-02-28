@@ -57,85 +57,106 @@ export default function TripTailor() {
     setCurrent(current + 1);
   };
 
-  if (current >= questions.length) {
+  
     return (
-        <div className="min-h-screen bg-white flex p-6 gap-10">
-  
-  /* Progress Sidebar */
-  <div className="w-1/3">
-    <h2 className="text-xl font-bold mb-4 text-gray-900">Progress</h2>
+  <div className="min-h-screen bg-white flex p-6 gap-10">
 
-    {questions.map((q, index) => {
-      let statusIcon = "•";
-      let textColor = "text-gray-400";
+    {/* Progress Sidebar */}
+    <div className="w-1/3">
+      <h2 className="text-xl font-bold mb-4 text-gray-900">Progress</h2>
 
-      if (answers[index]) {
-        statusIcon = "✓";
-        textColor = "text-green-600";
-      } else if (index === current) {
-        statusIcon = "➤";
-        textColor = "text-blue-600";
-      }
-
-      return (
-        <div key={index} className="mb-3">
-          <p className={`font-semibold ${textColor}`}>
-            {statusIcon} Step {index + 1}
-          </p>
-
-          {answers[index] && (
-            <p className="ml-6 text-sm text-gray-600">
-              Answer: {answers[index]}
-            </p>
-          )}
-        </div>
-      );
-    })}
-  </div>
-  
-  * Question Area *
-  <div className="flex-1 flex flex-col items-center justify-center"></div>
-        <h1 className="text-3xl font-bold mb-6 text-black">Trip Summary</h1>
-        {Object.entries(answers).map(([qIndex,ans])=>(
-          <p key={qIndex}>
-            Q{Number(qIndex)+1}:{ans}
-          </p>
-        ))}
-
-        <button
-          onClick={() => {
-            setCurrent(0);
-            setAnswers([]);
-          }}
-          className="mt-6 px-6 py-3 bg-green-600 text-gray-900 rounded-lg hover:bg-white-700 transition"
-        >
-          Restart Questionnaire
-        </button>
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
+        <div
+          className="bg-blue-600 h-4 rounded-full transition-all"
+          style={{ width: `${(current / questions.length) * 100}%` }}
+        />
       </div>
-    );
-  }
 
-  const question = questions[current];
+      {questions.map((q, index) => {
+        let statusIcon = "•";
+        let textColor = "text-gray-400";
 
-  return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        if (answers[index]) {
+          statusIcon = "✓";
+          textColor = "text-green-600";
+        } else if (index === current) {
+          statusIcon = "➤";
+          textColor = "text-blue-600";
+        }
+
+        return (
+          <div key={index} className="mb-3">
+            <p className={`font-semibold ${textColor}`}>
+              {statusIcon} Step {index + 1}
+            </p>
+
+            {answers[index] && (
+              <p className="ml-6 text-sm text-gray-600">
+                Answer: {answers[index]}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+
+    {/* Question Area */}
+<div className="flex-1 flex flex-col items-center justify-center text-black">
+
+  {current >= questions.length ? (
+
+    /* ⭐ SUMMARY SCREEN */
+    <>
+      <h1 className="text-3xl font-bold mb-6 text-black">
+        Trip Summary
+      </h1>
+
+      {Object.entries(answers).map(([qIndex, ans]) => (
+        <p key={qIndex}>
+          Q{Number(qIndex) + 1}: {ans}
+        </p>
+      ))}
+
+      <button
+        onClick={() => {
+          setCurrent(0);
+          setAnswers({});
+        }}
+        className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg"
+      >
+        Restart Questionnaire
+      </button>
+    </>
+
+  ) : (
+
+    /* ⭐ QUESTION SCREEN */
+    <>
       <h1 className="text-2xl font-bold mb-6 text-gray-900">
         Question {current + 1}
       </h1>
 
-      <p className="mb-6 text-lg text-gray-900">{question.text}</p>
+      <p className="mb-6 text-lg text-gray-900">
+        {questions[current].text}
+      </p>
 
       <div className="flex flex-col gap-4">
-        {question.options.map((option) => (
+        {questions[current].options.map((option) => (
           <button
             key={option}
             onClick={() => handleAnswer(option)}
-            className="px-6 py-3 bg-blue-600 text-gray-900 rounded-lg hover:bg-white-700 transition"
+            className="px-6 py-3 bg-blue-600 text-black rounded-lg"
           >
             {option}
           </button>
         ))}
       </div>
-    </div>
+    </>
+  )}
+
+</div>
+  
+</div>
   );
 }
