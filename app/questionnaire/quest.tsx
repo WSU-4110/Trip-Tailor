@@ -164,7 +164,7 @@ export default function TripTailor() {
   )}
 
 </div>
-  
+  /* its composite design pattern instead */
 </div>
   );
 }
