@@ -48,7 +48,7 @@ const questions: Question[] = [
   },
 ];
 
-export default function TripTailor() {
+export default function TripTailorQuestionnaire() {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<{[key:number]:string}>({});
   const router = useRouter();
@@ -128,7 +128,7 @@ export default function TripTailor() {
       >
         Restart Questionnaire
       </button>
-      
+      home button
       <button
       onClick={() => router.push("/")}
       className="mt-4 px-6 py-3 bg-gray-800 text-white rounded-lg"
@@ -164,7 +164,7 @@ export default function TripTailor() {
   )}
 
 </div>
-  
+  /* its composite design pattern instead */
 </div>
   );
 }
