@@ -1,6 +1,9 @@
 from flask import Flask, jsonify, request
 import os
 from .extensions import bcrypt, jwt
+from app.repositories.auth_repo import get_user_by_email, create_user
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 
 from app.repositories.activities_repo import list_activities, get_activity_by_id
@@ -56,5 +59,73 @@ def create_app():
         if row is None:
             return jsonify({"error": {"code": "NOT_FOUND", "message": "Place not found"}}), 404
         return jsonify(row)
+    
 
+    @app.post("/api/v1/auth/register")
+    def register():
+        data = request.get_json()
+
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return jsonify({"error": "Email and password required"}), 400
+
+        # Check if user already exists
+        if get_user_by_email(email):
+            return jsonify({"error": "User already exists"}), 400
+
+        # Hash the password
+        password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+
+        # Store user in DB
+        user = create_user(email, password_hash)
+
+        return jsonify({
+            "message": "Account created",
+            "user": {
+                "id": user["id"],
+                "email": user["email"]
+            }
+        }), 201
+
+
+    @app.post("/api/v1/auth/login")
+    def login():
+        data = request.get_json()
+
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return jsonify({"error": "Email and password required"}), 400
+
+        user = get_user_by_email(email)
+
+        if not user:
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        if not bcrypt.check_password_hash(user["password_hash"], password):
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        access_token = create_access_token(identity=str(user["id"]))
+
+        return jsonify({
+            "access_token": access_token,
+            "user": {
+                "id": user["id"],
+                "email": user["email"]
+            }
+        })
+
+
+
+    @app.get("/api/v1/me")
+    @jwt_required()
+    def me():
+        user_id = get_jwt_identity()
+        return jsonify({
+            "message": "Authenticated",
+            "user_id": user_id
+        })
     return app
