@@ -7,7 +7,14 @@ type Question = {
   text: string;
   options: string[];
 };
-
+class Answer {
+  questionIndex: number;
+  value: string; 
+  constructor(questionIndex: number,value: string){
+    this.questionIndex=questionIndex;
+    this.value=value;
+  }
+}
 const questions: Question[] = [
   {
     text: "Are you ready to plan your trip?",
@@ -50,12 +57,15 @@ const questions: Question[] = [
 
 export default function TripTailorQuestionnaire() {
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<{[key:number]:string}>({});
+  const [answers, setAnswers] = useState<Answer[]>([]);
   const router = useRouter();
 
-  const handleAnswer = (answer: string) => {
-    setAnswers({...answers,[current]: answer,});
-    setCurrent(current + 1);
+  const handleAnswer = (value: string) => {
+    const newAnswer=new Answer(current,value);
+    setAnswers(prev=>[... prev.filter(a=>a.questionIndex!==current),
+      newAnswer
+    ]);
+    setCurrent(current+1);
   };
 
   
@@ -78,7 +88,8 @@ export default function TripTailorQuestionnaire() {
         let statusIcon = "•";
         let textColor = "text-gray-400";
 
-        if (answers[index]) {
+        const answered=answers.find(a=>a.questionIndex===index)
+        if (answered) {
           statusIcon = "✓";
           textColor = "text-green-600";
         } else if (index === current) {
@@ -94,7 +105,7 @@ export default function TripTailorQuestionnaire() {
 
             {answers[index] && (
               <p className="ml-6 text-sm text-gray-600">
-                Answer: {answers[index]}
+                Answer: {answered.value}
               </p>
             )}
           </div>
@@ -113,16 +124,16 @@ export default function TripTailorQuestionnaire() {
         Trip Summary
       </h1>
 
-      {Object.entries(answers).map(([qIndex, ans]) => (
-        <p key={qIndex}>
-          Q{Number(qIndex) + 1}: {ans}
+      {answers.sort((a,b)=>a.questionIndex-b.questionIndex).map((ans)=>(
+        <p key={ans.questionIndex}>
+          Q{ans.questionIndex+1}:{ans.value}
         </p>
       ))}
 
       <button
         onClick={() => {
           setCurrent(0);
-          setAnswers({});
+          setAnswers([]);
         }}
         className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg"
       >
