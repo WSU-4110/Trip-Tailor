@@ -19,7 +19,7 @@ const questions: Question[] = [
   },
   {
     text: "What would you like to do more in this trip?",
-    options: ["Sightseeing", "Interact", "Both"],
+    options: ["Sightseeing", "Interactive", "Both"],
   },
   
   {
