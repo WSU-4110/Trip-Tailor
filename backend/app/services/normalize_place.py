@@ -72,3 +72,33 @@ def normalize_google_place(raw: dict) -> dict:
         "google_place_id": raw.get("place_id"),
         "yelp_business_id": None,
     }
+
+def normalize_yelp_business(raw: dict) -> dict:
+    """
+    Normalize Yelp Fusion 'business' object to our canonical place dict.
+    """
+    coords = raw.get("coordinates") or {}
+    location = raw.get("location") or {}
+
+    # Yelp gives display_address as a list like:
+    # ["123 Main St", "Detroit, MI 48202"]
+    display_address = location.get("display_address") or []
+    address_line1 = display_address[0] if len(display_address) >= 1 else None
+    address_line2 = display_address[1] if len(display_address) >= 2 else None
+
+    return {
+        "name": raw.get("name"),
+        "address_line1": address_line1,
+        "address_line2": address_line2,
+        "city": location.get("city"),
+        "region": location.get("state"),
+        "postal_code": location.get("zip_code"),
+        "country": (location.get("country") or "US"),
+        "latitude": coords.get("latitude"),
+        "longitude": coords.get("longitude"),
+        "phone": raw.get("display_phone") or raw.get("phone"),
+        "website_url": raw.get("url"),  # Yelp business URL (not their website, but useful)
+        "google_maps_url": None,
+        "google_place_id": None,
+        "yelp_business_id": raw.get("id"),
+    }
