@@ -128,7 +128,7 @@ export default function TripTailorQuestionnaire() {
       >
         Restart Questionnaire
       </button>
-      home button
+     
       <button
       onClick={() => router.push("/")}
       className="mt-4 px-6 py-3 bg-gray-800 text-white rounded-lg"
