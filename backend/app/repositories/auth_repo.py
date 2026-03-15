@@ -1,7 +1,6 @@
 from typing import Any, Optional
 from app.db import get_conn
 
-
 def get_user_by_email(email: str) -> Optional[dict[str, Any]]:
     sql = """
         SELECT
