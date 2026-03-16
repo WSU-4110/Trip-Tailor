@@ -116,31 +116,31 @@ export default function TripTailorQuestionnaire() {
 
   
     return (
-  <div className="min-h-screen bg-white flex p-6 gap-10">
+  <div className="min-h-screen bg-white dark:bg-slate-900 flex p-6 gap-10">
 
     {/* Progress Sidebar */}
     <div className="w-1/3">
-      <h2 className="text-xl font-bold mb-4 text-gray-900">Progress</h2>
+      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Progress</h2>
 
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
+      <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 mb-6">
         <div
-          className="bg-blue-600 h-4 rounded-full transition-all"
+          className="bg-blue-600 dark:bg-blue-500 h-4 rounded-full transition-all"
           style={{ width: `${(current / questions.length) * 100}%` }}
         />
       </div>
 
       {questions.map((q, index) => {
         let statusIcon = "•";
-        let textColor = "text-gray-400";
+        let textColor = "text-gray-400 dark:text-gray-500";
 
         const answered=answers.find(a=>a.questionIndex===index)
         if (answered) {
           statusIcon = "✓";
-          textColor = "text-green-600";
+          textColor = "text-green-600 dark:text-green-500";
         } else if (index === current) {
           statusIcon = "➤";
-          textColor = "text-blue-600";
+          textColor = "text-blue-600 dark:text-blue-400";
         }
 
         return (
@@ -150,7 +150,7 @@ export default function TripTailorQuestionnaire() {
             </p>
 
             {answered && (
-              <p className="ml-6 text-sm text-gray-600">
+              <p className="ml-6 text-sm text-gray-600 dark:text-gray-400">
                 Answer: {answered.value}
               </p>
             )}
@@ -160,18 +160,18 @@ export default function TripTailorQuestionnaire() {
     </div>
 
     {/* Question Area */}
-<div className="flex-1 flex flex-col items-center justify-center text-black">
+<div className="flex-1 flex flex-col items-center justify-center text-black dark:text-white">
 
   {current >= questions.length ? (
 
     /* SUMMARY SCREEN */
     <>
-      <h1 className="text-3xl font-bold mb-6 text-black">
+      <h1 className="text-3xl font-bold mb-6 text-black dark:text-white">
         Trip Summary
       </h1>
 
       {answers.sort((a,b)=>a.questionIndex-b.questionIndex).map((ans)=>(
-        <p key={ans.questionIndex}>
+        <p key={ans.questionIndex} className="text-gray-900 dark:text-gray-200">
           Q{ans.questionIndex+1}:{ans.value}
         </p>
       ))}
@@ -181,14 +181,14 @@ export default function TripTailorQuestionnaire() {
           setCurrent(0);
           setAnswers([]);
         }}
-        className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg"
+        className="mt-6 px-6 py-3 bg-green-600 dark:bg-green-700 text-black dark:text-white rounded-lg"
       >
         Restart Questionnaire
       </button>
      
       <button
       onClick={() => router.push("/")}
-      className="mt-4 px-6 py-3 bg-gray-800 text-white rounded-lg"
+      className="mt-4 px-6 py-3 bg-gray-800 dark:bg-slate-700 text-white rounded-lg"
     >
       Return to Home Page
     </button>
@@ -198,11 +198,11 @@ export default function TripTailorQuestionnaire() {
 
     /*  QUESTION SCREEN */
     <>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900">
+      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
         Question {current + 1}
       </h1>
 
-      <p className="mb-6 text-lg text-gray-900">
+      <p className="mb-6 text-lg text-gray-900 dark:text-gray-200">
         {questions[current].text}
       </p>
 
@@ -212,7 +212,7 @@ export default function TripTailorQuestionnaire() {
 
   <>
     {questions[current].options.map((option) => (
-      <label key={option} className="flex items-center gap-2">
+      <label key={option} className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
         <input
           type="checkbox"
           checked={multiAnswers.includes(option)}
@@ -224,7 +224,7 @@ export default function TripTailorQuestionnaire() {
 
     <button
       onClick={submitMultiAnswers}
-      className="mt-4 px-6 py-3 bg-blue-600 text-black rounded-lg"
+      className="mt-4 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-white rounded-lg"
     >
       Continue
     </button>
@@ -236,7 +236,7 @@ export default function TripTailorQuestionnaire() {
     <button
       key={option}
       onClick={() => handleAnswer(option)}
-      className="px-6 py-3 bg-blue-600 text-black rounded-lg"
+      className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-white rounded-lg"
     >
       {option}
     </button>

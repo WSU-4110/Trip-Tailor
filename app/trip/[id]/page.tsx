@@ -30,15 +30,15 @@ export default function TripPage() {
 
   if (notFound) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
         <div className="container mx-auto px-6 max-w-2xl text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Trip not found</h1>
-          <p className="text-gray-600 mb-6">This itinerary may have been removed or the link is invalid.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Trip not found</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">This itinerary may have been removed or the link is invalid.</p>
           <div className="flex gap-4 justify-center">
-            <Link href="/my-trips" className="text-primary-600 font-semibold hover:underline">
+            <Link href="/my-trips" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               My Trips
             </Link>
-            <Link href="/trips" className="text-primary-600 font-semibold hover:underline">
+            <Link href="/trips" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               Explore Trips
             </Link>
           </div>
@@ -49,8 +49,8 @@ export default function TripPage() {
 
   if (!trip) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
-        <div className="container mx-auto px-6 max-w-2xl text-center text-gray-600">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
+        <div className="container mx-auto px-6 max-w-2xl text-center text-gray-600 dark:text-gray-400">
           Loading itinerary…
         </div>
       </main>
@@ -60,39 +60,39 @@ export default function TripPage() {
   const title = trip.destination + (trip.startDate && trip.endDate ? ` · ${trip.startDate} – ${trip.endDate}` : '')
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
       <div className="container mx-auto px-6 max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <Link href="/my-trips" className="text-sm text-primary-600 hover:underline mb-2 inline-block">
+            <Link href="/my-trips" className="text-sm text-primary-600 dark:text-primary-400 hover:underline mb-2 inline-block">
               ← Back to My Trips
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{title}</h1>
             {trip.interests?.length ? (
-              <p className="mt-1 text-gray-600 text-sm">Interests: {trip.interests.join(', ')}</p>
+              <p className="mt-1 text-gray-600 dark:text-gray-400 text-sm">Interests: {trip.interests.join(', ')}</p>
             ) : null}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {trip.days.map((day) => (
-            <section key={day.day} className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="bg-primary-600 px-6 py-3">
+            <section key={day.day} className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden dark:border dark:border-slate-700">
+              <div className="bg-primary-600 dark:bg-primary-700 px-6 py-3">
                 <h2 className="text-lg font-semibold text-white">
                   Day {day.day} {day.date && !day.date.startsWith('Day') ? `· ${day.date}` : ''}
                 </h2>
               </div>
-              <ul className="divide-y divide-gray-200">
+              <ul className="divide-y divide-gray-200 dark:divide-slate-600">
                 {day.items.map((item) => (
                   <li key={item.id} className="px-6 py-4">
                     <div className="flex items-start gap-4">
                       {item.time ? (
-                        <span className="text-sm font-medium text-primary-600 shrink-0 w-14">{item.time}</span>
+                        <span className="text-sm font-medium text-primary-600 dark:text-primary-400 shrink-0 w-14">{item.time}</span>
                       ) : null}
                       <div>
-                        <h3 className="font-medium text-gray-900">{item.name}</h3>
+                        <h3 className="font-medium text-gray-900 dark:text-white">{item.name}</h3>
                         {item.description ? (
-                          <p className="text-sm text-gray-600 mt-0.5">{item.description}</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-0.5">{item.description}</p>
                         ) : null}
                       </div>
                     </div>
