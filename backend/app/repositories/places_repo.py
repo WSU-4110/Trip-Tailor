@@ -4,12 +4,30 @@ from app.db import get_conn
 import psycopg2
 
 
+PLACE_COLUMNS = [
+    "name",
+    "address_line1",
+    "address_line2",
+    "city",
+    "region",
+    "postal_code",
+    "country",
+    "latitude",
+    "longitude",
+    "phone",
+    "website_url",
+    "google_maps_url",
+    "google_place_id",
+    "yelp_business_id",
+]
+
 def list_places(limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
     sql = """
         SELECT
             id, name, address_line1, address_line2, city, region,
             postal_code, country, latitude, longitude,
-            phone, website_url, google_maps_url, created_at, updated_at
+            phone, website_url, google_maps_url, created_at, updated_at, 
+            google_place_id, yelp_business_id
         FROM data.places
         ORDER BY created_at DESC
         LIMIT %s OFFSET %s;
@@ -25,7 +43,8 @@ def get_place_by_id(place_id: str) -> Optional[dict[str, Any]]:
         SELECT
             id, name, address_line1, address_line2, city, region,
             postal_code, country, latitude, longitude,
-            phone, website_url, google_maps_url, created_at, updated_at
+            phone, website_url, google_maps_url, created_at, updated_at,
+            google_place_id, yelp_business_id
         FROM data.places
         WHERE id = %s;
     """
@@ -34,43 +53,93 @@ def get_place_by_id(place_id: str) -> Optional[dict[str, Any]]:
             cur.execute(sql, (place_id,))
             return cur.fetchone()
 
+def _find_existing_place(cur, place:dict[str, Any]) -> Optional[dict[str, Any]]:
+    if place.get("google_place_id"):
+        cur.execute(
+            """
+            SELECT *
+            FROM data.places
+            WHERE google_place_id = %s
+            LIMIT 1;
+            """,
+            (place["google_place_id"],),
+        )
+        row = cur.fetchone()
+        if row:
+            return row
 
-def upsert_place_by_google_id(place: dict[str, Any]) -> Optional[dict[str, Any]]:
+    if place.get("yelp_business_id"):
+        cur.execute(
+            """
+            SELECT *
+            FROM data.places
+            WHERE yelp_business_id = %s
+            LIMIT 1;
+            """,
+            (place["yelp_business_id"],),
+        )
+    
+        row = cur.fetchone()
+        if row:
+            return row
+        
+    if place.get("name") and place.get("city") and place.get("region") and place.get("country"):
+        cur.execute(
+            """
+            SELECT *
+            FROM data.places
+            WHERE name = %s
+              AND city = %s
+              AND region = %s
+              AND country = %s
+            LIMIT 1;
+            """,
+            (
+                place["name"],
+                place["city"],
+                place["region"],
+                place["country"],
+            ),
+        )
+        row = cur.fetchone()
+        if row:
+            return row
+
+    return None
+
+def upsert_place(place: dict[str, Any]) -> Optional[dict[str, Any]]:
     """
-    Upsert a place using google_place_id when available.
-    Falls back to identity (name, city, region, country) to avoid ux_places_identity collisions
-    (e.g., seeded test data without google_place_id).
+    Upserts data into rows for each provider
+    Matches in this order: google_place_id, yelp_business_id, (name, city, region, county)
+    Keeps the canonical data.places solely for information about each location
     """
     if not place.get("name"):
         return None
 
     with get_conn() as conn:
         with conn.cursor() as cur:
-            # 1) Try upsert by google_place_id when present
-            if place.get("google_place_id"):
-                sql_google = """
-                    INSERT INTO data.places (
-                        name, address_line1, address_line2, city, region, postal_code, country,
-                        latitude, longitude, phone, website_url, google_maps_url,
-                        google_place_id, yelp_business_id
-                    )
-                    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                    ON CONFLICT (google_place_id)
-                    DO UPDATE SET
-                        name = EXCLUDED.name,
-                        address_line1 = COALESCE(EXCLUDED.address_line1, data.places.address_line1),
-                        address_line2 = COALESCE(EXCLUDED.address_line2, data.places.address_line2),
-                        city = COALESCE(EXCLUDED.city, data.places.city),
-                        region = COALESCE(EXCLUDED.region, data.places.region),
-                        postal_code = COALESCE(EXCLUDED.postal_code, data.places.postal_code),
-                        country = COALESCE(EXCLUDED.country, data.places.country),
-                        latitude = COALESCE(EXCLUDED.latitude, data.places.latitude),
-                        longitude = COALESCE(EXCLUDED.longitude, data.places.longitude),
-                        phone = COALESCE(EXCLUDED.phone, data.places.phone),
-                        website_url = COALESCE(EXCLUDED.website_url, data.places.website_url),
-                        google_maps_url = COALESCE(EXCLUDED.google_maps_url, data.places.google_maps_url),
-                        yelp_business_id = COALESCE(EXCLUDED.yelp_business_id, data.places.yelp_business_id),
+            existing = _find_existing_place(cur, place)
+
+            if existing:
+                sql = """
+                    UPDATE data.places
+                    SET
+                        name = COALESCE(%s, name),
+                        address_line1 = COALESCE(%s, address_line1),
+                        address_line2 = COALESCE(%s, address_line2),
+                        city = COALESCE(%s, city),
+                        region = COALESCE(%s, region),
+                        postal_code = COALESCE(%s, postal_code),
+                        country = COALESCE(%s, country),
+                        latitude = COALESCE(%s, latitude),
+                        longitude = COALESCE(%s, longitude),
+                        phone = COALESCE(%s, phone),
+                        website_url = COALESCE(%s, website_url),
+                        google_maps_url = COALESCE(%s, google_maps_url),
+                        google_place_id = COALESCE(google_place_id, %s),
+                        yelp_business_id = COALESCE(yelp_business_id, %s),
                         updated_at = NOW()
+                    WHERE id = %s
                     RETURNING *;
                 """
                 values = (
@@ -88,47 +157,21 @@ def upsert_place_by_google_id(place: dict[str, Any]) -> Optional[dict[str, Any]]
                     place.get("google_maps_url"),
                     place.get("google_place_id"),
                     place.get("yelp_business_id"),
+                    existing["id"],
                 )
+                cur.execute(sql, values)
+                return cur.fetchone()
 
-                try:
-                    cur.execute(sql_google, values)
-                    return cur.fetchone()
-                except psycopg2.errors.UniqueViolation:
-                    # Identity constraint hit (seed row exists). Roll back and fall through.
-                    conn.rollback()
-
-            # 2) Fallback: upsert by identity (name, city, region, country)
-            sql_identity = """
+            sql = """
                 INSERT INTO data.places (
                     name, address_line1, address_line2, city, region, postal_code, country,
                     latitude, longitude, phone, website_url, google_maps_url,
                     google_place_id, yelp_business_id
                 )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-                ON CONFLICT (name, city, region, country)
-                DO UPDATE SET
-                    address_line1 = COALESCE(EXCLUDED.address_line1, data.places.address_line1),
-                    address_line2 = COALESCE(EXCLUDED.address_line2, data.places.address_line2),
-                    postal_code = COALESCE(EXCLUDED.postal_code, data.places.postal_code),
-                    latitude = COALESCE(EXCLUDED.latitude, data.places.latitude),
-                    longitude = COALESCE(EXCLUDED.longitude, data.places.longitude),
-                    phone = COALESCE(EXCLUDED.phone, data.places.phone),
-                    website_url = COALESCE(EXCLUDED.website_url, data.places.website_url),
-                    google_maps_url = COALESCE(EXCLUDED.google_maps_url, data.places.google_maps_url),
-
-                    -- IMPORTANT: fill provider IDs if missing
-                    google_place_id = COALESCE(data.places.google_place_id, EXCLUDED.google_place_id),
-                    yelp_business_id = COALESCE(data.places.yelp_business_id, EXCLUDED.yelp_business_id),
-
-                    name = EXCLUDED.name,
-                    city = COALESCE(EXCLUDED.city, data.places.city),
-                    region = COALESCE(EXCLUDED.region, data.places.region),
-                    country = COALESCE(EXCLUDED.country, data.places.country),
-                    updated_at = NOW()
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING *;
             """
-
-            values2 = (
+            values = (
                 place.get("name"),
                 place.get("address_line1"),
                 place.get("address_line2"),
@@ -144,7 +187,5 @@ def upsert_place_by_google_id(place: dict[str, Any]) -> Optional[dict[str, Any]]
                 place.get("google_place_id"),
                 place.get("yelp_business_id"),
             )
-
-            cur.execute(sql_identity, values2)
+            cur.execute(sql, values)
             return cur.fetchone()
-
