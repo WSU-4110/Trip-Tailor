@@ -4,7 +4,7 @@ from app.services.normalize_place import normalize_google_place, normalize_yelp_
 from app.services.place_classifier import classify_google_place, classify_yelp_business
 
 
-def build_google_place_variables(raw: dict, provider: str) -> dict[str, Any]:
+def build_place_variables(raw: dict, provider: str) -> dict[str, Any]:
     """
     Build the full normalized variable set for each providers place data
 

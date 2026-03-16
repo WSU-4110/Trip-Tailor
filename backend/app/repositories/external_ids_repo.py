@@ -14,6 +14,9 @@ def upsert_place_external_id(
     Store/refresh the mapping from (source, external_id) -> place_id,
     and keep the latest raw_payload for inspection.
     """
+    if not external_id:
+        return
+    
     sql = """
         INSERT INTO data.place_external_ids
             (place_id, source, external_id, source_url, raw_payload)
@@ -28,4 +31,6 @@ def upsert_place_external_id(
     """
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (place_id, source, external_id, source_url, Json(raw_payload) if raw_payload else None))
+            cur.execute(sql, 
+                        (place_id, source, external_id, source_url,
+                        Json(raw_payload) if raw_payload else None))

@@ -225,6 +225,78 @@ def _price_level_to_cost_cents(price_level: Optional[int]) -> Optional[int]:
     return mapping.get(price_level)
 
 
+def _fallback_cost_from_category(category: Optional[str]) -> Optional[int]:
+    if not category:
+        return None
+
+    fallback_costs = {
+        "park": 0,
+        "museum": 2000,
+        "aquarium": 3000,
+        "zoo": 3000,
+        "restaurant": 3000,
+        "cafe": 1500,
+        "bar": 2500,
+        "arcade": 2500,
+        "bowling": 3000,
+        "movie_theater": 2500,
+        "hiking": 0,
+    }
+    return fallback_costs.get(category, 2000)
+
+
+def _fallback_duration_from_category_or_type(
+    category: Optional[str],
+    activity_type: Optional[str],
+) -> Optional[int]:
+    if category in {"museum", "aquarium"}:
+        return 120
+    if category == "zoo":
+        return 180
+    if category == "park":
+        return 90
+    if category == "hiking":
+        return 180
+    if category == "restaurant":
+        return 90
+    if category == "cafe":
+        return 45
+    if category == "bar":
+        return 120
+    if category == "arcade":
+        return 90
+    if category == "bowling":
+        return 120
+    if category == "movie_theater":
+        return 150
+
+    if activity_type == "outdoor":
+        return 90
+    if activity_type == "entertainment":
+        return 90
+    if activity_type == "food_drink":
+        return 60
+    if activity_type == "sightseeing":
+        return 120
+
+    return 90
+
+
+def _apply_fallbacks(result: dict[str, Any]) -> dict[str, Any]:
+    category = result.get("category")
+    activity_type = result.get("activity_type")
+
+    if result.get("duration_minutes") is None:
+        result["duration_minutes"] = _fallback_duration_from_category_or_type(
+            category,
+            activity_type,
+        )
+
+    if result.get("estimated_cost_cents") is None:
+        result["estimated_cost_cents"] = _fallback_cost_from_category(category)
+
+    return result
+
 
 def _build_quality_score(rating: float | None, review_count: int | None) -> float | None:
     """
@@ -267,7 +339,7 @@ def classify_google_place(raw: dict) -> dict[str, Any]:
         "source": "google",
         "source_url": None,
 
-        # Variables derived from the Google's API
+        # Variables derived from Google's API
         "provider_source": "google",
         "provider_category_types": place_types,
         "matched_primary_type": matched_type,
@@ -282,7 +354,7 @@ def classify_google_place(raw: dict) -> dict[str, Any]:
         ),
     })
 
-    return result
+    return _apply_fallbacks(result)
 
 def _get_yelp_aliases(raw: dict) -> list[str]:
     categories = raw.get("categories") or []
@@ -333,4 +405,4 @@ def classify_yelp_business(raw: dict) -> dict[str, Any]:
         ),
     })
 
-    return result
+    return _apply_fallbacks(result)
