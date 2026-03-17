@@ -13,14 +13,14 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Basic validation
+    // validation
     if (!email || !password) {
       setError("Please fill in all fields");
       return;
     }
 
     try {
-      // 🔥 Replace this with real auth (API / Firebase / NextAuth)
+      // nathaniel put in the api here
       if (email === "test@test.com" && password === "123456") {
         router.push("/dashboard");
       } else {
@@ -34,7 +34,7 @@ export default function SignInPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
+        <h1 className="mb-6 text-center text-2xl font-bold text-black">Sign In</h1>
 
         {error && (
           <p className="mb-4 text-center text-red-500">{error}</p>

@@ -26,9 +26,16 @@ export default function Header() {
           >
             My Trips
           </Link>
-          <button className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-            Sign In
-          </button>
+          <Link
+          href="/Login"
+          className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
+          
+          
+          Sign In
+          </Link>  
+           
+          
         </div>
       </div>
     </nav>
