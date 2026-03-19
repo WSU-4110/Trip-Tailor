@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Question = {
   text: string;
@@ -89,6 +89,14 @@ export default function TripTailorQuestionnaire() {
   const [multiAnswers, setMultiAnswers] = useState<string[]>([]);
   const router = useRouter();
 
+  const searchParams = useSearchParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const destination = searchParams.get("destination") || "Detroit";
+  const startDate = searchParams.get("startDate") || "";
+  const endDate = searchParams.get("endDate") || "";
+
   const toggleMultiAnswer = (value: string) => {
   setMultiAnswers(prev =>
     prev.includes(value)
@@ -114,6 +122,102 @@ export default function TripTailorQuestionnaire() {
     setCurrent(current+1);
   };
 
+  const getAnswerValue = (questionIndex: number) => {
+  return answers.find((a) => a.questionIndex === questionIndex)?.value;
+};
+
+  const buildPayload = () => {
+    const tripStyle = getAnswerValue(1);
+    const audience = getAnswerValue(2);
+    const activityMode = getAnswerValue(3);
+    const indoorOutdoor = getAnswerValue(4);
+    const locationsPerDay = getAnswerValue(5);
+    const interestsRaw = getAnswerValue(6);
+    const accessibility = getAnswerValue(7);
+
+    const preferredCategories: string[] = [];
+    const excludedCategories: string[] = [];
+
+    const interests = interestsRaw
+      ? interestsRaw.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    if (interests.includes("Museums & Culture")) preferredCategories.push("museum");
+    if (interests.includes("Outdoors & Nature")) preferredCategories.push("park");
+    if (interests.includes("Nightlife")) preferredCategories.push("entertainment", "bar");
+    if (interests.includes("History")) preferredCategories.push("museum");
+    if (interests.includes("Adventure")) preferredCategories.push("outdoor", "entertainment");
+
+    if (!interests.includes("Nightlife")) excludedCategories.push("bar");
+
+    let maxEffortLevel = 3;
+    if (tripStyle === "Relaxing") maxEffortLevel = 2;
+    if (tripStyle === "Somewhere In-Between") maxEffortLevel = 3;
+    if (tripStyle === "High Octane") maxEffortLevel = 5;
+
+    let indoorOutdoorPreference = "either";
+    if (indoorOutdoor === "inside") indoorOutdoorPreference = "indoor";
+    if (indoorOutdoor === "outside") indoorOutdoorPreference = "outdoor";
+
+    const hasKids = audience === "Children" || audience === "all-ages";
+    const goodForKidsRequired = audience === "Children";
+    const familyFriendlyRequired = audience === "Children" || audience === "all-ages";
+
+    return {
+      user_id: null,
+      title: `${destination} Trip`,
+      destination_city: destination,
+      destination_region: "MI",
+      destination_country: "US",
+      start_date: startDate,
+      end_date: endDate,
+      budget_level: "medium",
+      group_size: 2,
+      has_kids: hasKids,
+      family_friendly_required: familyFriendlyRequired,
+      good_for_groups_required: true,
+      good_for_kids_required: goodForKidsRequired,
+      indoor_outdoor_preference: indoorOutdoorPreference,
+      max_effort_level: maxEffortLevel,
+      preferred_categories: preferredCategories,
+      excluded_categories: excludedCategories,
+      activities_per_day: Number(locationsPerDay || "3"),
+      accessibility_requested: accessibility === "Yes",
+      questionnaire_answers: answers,
+      activity_mode: activityMode,
+    };
+  };
+
+  const handleGenerateTrip = async () => {
+    try {
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      const payload = buildPayload();
+
+      const res = await fetch("http://localhost:5050/api/v1/trips/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to generate trip");
+      }
+
+      const data = await res.json();
+      router.push(`/trip/${data.trip.id}`);
+    } catch (err) {
+      console.error(err);
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   
     return (
   <div className="min-h-screen bg-white flex p-6 gap-10">
@@ -130,7 +234,7 @@ export default function TripTailorQuestionnaire() {
         />
       </div>
 
-      {questions.map((q, index) => {
+      {questions.map((_, index) => {
         let statusIcon = "•";
         let textColor = "text-gray-400";
 
@@ -159,8 +263,8 @@ export default function TripTailorQuestionnaire() {
       })}
     </div>
 
-    {/* Question Area */}
-<div className="flex-1 flex flex-col items-center justify-center text-black">
+  {/* Question Area */}
+  <div className="flex-1 flex flex-col items-center justify-center text-black">
 
   {current >= questions.length ? (
 
@@ -176,22 +280,38 @@ export default function TripTailorQuestionnaire() {
         </p>
       ))}
 
-      <button
-        onClick={() => {
-          setCurrent(0);
-          setAnswers([]);
-        }}
-        className="mt-6 px-6 py-3 bg-green-600 text-black rounded-lg"
-      >
-        Restart Questionnaire
-      </button>
-     
-      <button
-      onClick={() => router.push("/")}
-      className="mt-4 px-6 py-3 bg-gray-800 text-white rounded-lg"
-    >
-      Return to Home Page
-    </button>
+            <div className="mt-6 flex flex-col gap-4">
+        <button
+          onClick={handleGenerateTrip}
+          disabled={isSubmitting}
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+        >
+          {isSubmitting ? "Generating trip..." : "Generate Trip"}
+        </button>
+
+        {submitError && (
+          <p className="text-red-600 text-sm">{submitError}</p>
+        )}
+
+        <button
+          onClick={() => {
+            setCurrent(0);
+            setAnswers([]);
+            setMultiAnswers([]);
+            setSubmitError(null);
+          }}
+          className="px-6 py-3 bg-green-600 text-white rounded-lg"
+        >
+          Restart Questionnaire
+        </button>
+
+        <button
+          onClick={() => router.push("/")}
+          className="px-6 py-3 bg-gray-800 text-white rounded-lg"
+        >
+          Return to Home Page
+        </button>
+      </div>
     </>
 
   ) : (
@@ -249,7 +369,6 @@ export default function TripTailorQuestionnaire() {
   )}
 
 </div>
-  /* its composite design pattern instead */
 </div>
   );
 }
