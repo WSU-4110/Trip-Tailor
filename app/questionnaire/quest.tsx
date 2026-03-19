@@ -270,13 +270,18 @@ export default function TripTailorQuestionnaire() {
 
     /* SUMMARY SCREEN */
     <>
-      <h1 className="text-3xl font-bold mb-6 text-black">
+      <h1 className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700">
         Trip Summary
       </h1>
+      {isSubmitting && (
+        <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-blue-700">
+          Generating your itinerary and saving your trip...
+        </div>
+      )}
 
       {answers.sort((a,b)=>a.questionIndex-b.questionIndex).map((ans)=>(
-        <p key={ans.questionIndex}>
-          Q{ans.questionIndex+1}:{ans.value}
+        <p key={ans.questionIndex} className="text-gray-700">
+          <span className="font-semibold">Q{ans.questionIndex + 1}:</span> {ans.value}
         </p>
       ))}
 
@@ -284,13 +289,16 @@ export default function TripTailorQuestionnaire() {
         <button
           onClick={handleGenerateTrip}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50"
+          className="px-6 py-3 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {isSubmitting ? "Generating trip..." : "Generate Trip"}
+          {isSubmitting ? "Generating trip your..." : "Generate Trip"}
         </button>
 
         {submitError && (
-          <p className="text-red-600 text-sm">{submitError}</p>
+          <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+            Failed to generate your trip. Please try again.
+          <div className="text-red-600 text-sm">{submitError}</div>
+        </div>
         )}
 
         <button
@@ -300,14 +308,16 @@ export default function TripTailorQuestionnaire() {
             setMultiAnswers([]);
             setSubmitError(null);
           }}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg"
+          disabled={isSubmitting}
+          className="px-6 py-3 bg-green-600 text-white rounded-lg disabled:opacity-50"
         >
           Restart Questionnaire
         </button>
 
         <button
           onClick={() => router.push("/")}
-          className="px-6 py-3 bg-gray-800 text-white rounded-lg"
+          disabled={isSubmitting}
+          className="px-6 py-3 bg-gray-800 text-white rounded-lg disabled:opacity-50"
         >
           Return to Home Page
         </button>
