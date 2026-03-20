@@ -33,6 +33,30 @@ type TripResponse = {
   itinerary_items: ItineraryItem[]
 }
 
+function formatDateRange(start: string, end: string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+  }
+
+  const startFormatted = startDate.toLocaleDateString('en-US', options)
+  const endFormatted = endDate.toLocaleDateString('en-US', options)
+
+  return `${startFormatted} – ${endFormatted}`
+}
+
+function formatDayDate(dateString: string) {
+  const date = new Date(dateString)
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  })
+}
+
 export default function TripPage() {
   const params = useParams()
   const id = params?.id as string
@@ -96,7 +120,7 @@ export default function TripPage() {
   }
 
   const title = trip.trip.title +
-  (trip.trip.start_date && trip.trip.end_date ? ` · ${trip.trip.start_date} – ${trip.trip.end_date}` : '')
+  (trip.trip.start_date && trip.trip.end_date ? ` · ${formatDateRange(trip.trip.start_date, trip.trip.end_date)}` : '')
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
@@ -106,7 +130,10 @@ export default function TripPage() {
             <Link href="/my-trips" className="text-sm text-primary-600 hover:underline mb-2 inline-block">
               ← Back to My Trips
             </Link>
-            <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{trip.trip.title}</h1>
+            <p className="text-gray-500 mt-1">
+              {formatDateRange(trip.trip.start_date, trip.trip.end_date)}
+            </p>
             {trip.preferences?.preferred_categories?.length ? (
               <p className="mt-1 text-gray-600 text-sm">Interests: {trip.preferences.preferred_categories.join(', ')}</p>
             ) : null}
@@ -125,7 +152,7 @@ export default function TripPage() {
               <section key={dayNumber} className="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-primary-600 px-6 py-3">
                   <h2 className="text-lg font-semibold text-white">
-                    Day {dayNumber} {dayDate ? `· ${dayDate}` : ''}
+                    Day {dayNumber} {dayDate ? ` · ${formatDayDate(dayDate)}` : ''}
                   </h2>
                 </div>
 

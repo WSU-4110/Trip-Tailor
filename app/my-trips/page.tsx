@@ -15,6 +15,21 @@ type TripListItem = {
   created_at: string
 }
 
+function formatDateRange(start: string, end: string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+  }
+
+  const startFormatted = startDate.toLocaleDateString('en-US', options)
+  const endFormatted = endDate.toLocaleDateString('en-US', options)
+
+  return `${startFormatted} – ${endFormatted}`
+}
+
 export default function MyTripsPage() {
   const [trips, setTrips] = useState<TripListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -83,7 +98,7 @@ export default function MyTripsPage() {
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
             {trips.map((trip) => {
-              const title = `${trip.title}${trip.start_date && trip.end_date ? ` · ${trip.start_date} – ${trip.end_date}` : ''}`
+              const title = `${trip.title}${trip.start_date && trip.end_date ? ` · ${formatDateRange(trip.start_date, trip.end_date)}` : ''}`
               return (
                 <li key={trip.id}>
                   <Link
