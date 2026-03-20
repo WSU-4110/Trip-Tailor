@@ -297,6 +297,71 @@ def _apply_fallbacks(result: dict[str, Any]) -> dict[str, Any]:
 
     return result
 
+def _normalize_category(category: Optional[str]) -> str:
+    if not category:
+        return "general"
+
+    c = category.lower().strip()
+
+    category_aliases = {
+        "movie": "movie_theater",
+        "cinema": "movie_theater",
+        "theater": "entertainment",
+        "theatre": "entertainment",
+        "coffee": "cafe",
+        "food": "restaurant",
+        "nightlife": "bar",
+        "family": "family_activity",
+        "culture": "museum",
+        "outdoors": "park",
+        "attraction": "landmark",
+    }
+
+    return category_aliases.get(c, c)
+
+
+def _derive_activity_type_from_category(category: Optional[str]) -> str:
+    c = _normalize_category(category)
+
+    if c in {"museum", "aquarium", "zoo", "landmark", "historic_site"}:
+        return "sightseeing"
+    if c in {"park", "hiking", "trail", "outdoor"}:
+        return "outdoor"
+    if c in {"restaurant", "cafe"}:
+        return "food_drink"
+    if c in {"bar"}:
+        return "nightlife"
+    if c in {"arcade", "bowling", "entertainment", "family_activity"}:
+        return "entertainment"
+    if c == "movie_theatre":
+        return "activity"
+
+
+    return "activity"
+
+
+def _normalize_labels(result: dict[str, Any]) -> dict[str, Any]:
+    category = _normalize_category(result.get("category"))
+    result["category"] = category
+
+    activity_type = (result.get("activity_type") or "").lower().strip()
+    if activity_type in {"", "general", "activity"}:
+        result["activity_type"] = _derive_activity_type_from_category(category)
+
+    tags = list(result.get("tags") or [])
+    if category == "movie_theater" and "movies" not in tags:
+        tags.append("movies")
+    if category == "museum" and "culture" not in tags:
+        tags.append("culture")
+    if category == "park" and "outdoors" not in tags:
+        tags.append("outdoors")
+    if category == "bar" and "nightlife" not in tags:
+        tags.append("nightlife")
+
+    result["tags"] = tags
+    return result
+
+
 
 def _build_quality_score(rating: float | None, review_count: int | None) -> float | None:
     """
@@ -354,7 +419,10 @@ def classify_google_place(raw: dict) -> dict[str, Any]:
         ),
     })
 
-    return _apply_fallbacks(result)
+    result = _apply_fallbacks(result)
+    result = _normalize_labels(result)
+    return result
+    
 
 def _get_yelp_aliases(raw: dict) -> list[str]:
     categories = raw.get("categories") or []
@@ -405,4 +473,6 @@ def classify_yelp_business(raw: dict) -> dict[str, Any]:
         ),
     })
 
-    return _apply_fallbacks(result)
+    result = _apply_fallbacks(result)
+    result = _normalize_labels(result)
+    return result

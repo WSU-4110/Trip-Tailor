@@ -8,7 +8,8 @@ from typing import Any
 from app.repositories.recommendations_repo import get_candidate_activities_for_city
 from app.repositories.trips_repo import create_trip, get_full_trip, update_trip_status
 from app.repositories.trip_preferences_repo import upsert_trip_preferences
-from app.repositories.trip_itinerary_repo import insert_trip_itinerary_item
+from app.repositories.trip_itinerary_repo import insert_trip_itinerary_item, delete_trip_itinerary_items
+
 
 # Converts the payload to a JSON-safe version before saving it so start and end_date objects can be saved in the JSON format
 def _make_json_safe(value: Any) -> Any:
@@ -34,6 +35,17 @@ def _normalize_preferred_categories(payload: dict[str, Any]) -> list[str]:
 def _normalize_excluded_categories(payload: dict[str, Any]) -> list[str]:
     categories = payload.get("excluded_categories") or []
     return [str(c).strip().lower() for c in categories if str(c).strip()]
+
+def _is_movie_like(candidate: dict[str, Any]) -> bool:
+    category = (candidate.get("category") or "").lower()
+    place_name = (candidate.get("place_name") or "").lower()
+    title = (candidate.get("title") or "").lower()
+
+    if category == "movie_theater":
+        return True
+
+    movie_words = ["cinema", "movie", "theatre", "theater"]
+    return any(word in place_name or word in title for word in movie_words)
 
 
 # Tracks "hard" filters for categories/attributes that must be met for accurate results
@@ -70,6 +82,13 @@ def _matches_hard_filters(candidate: dict[str, Any], payload: dict[str, Any]) ->
     if indoor_outdoor_preference in {"indoor", "outdoor"}:
         if indoor_outdoor is not None and indoor_outdoor != indoor_outdoor_preference:
             return False
+    
+    preferred_categories = _normalize_preferred_categories(payload)
+
+    # If this is primarily a nightlife/bar trip, do not allow movie-style places
+    if any(cat in preferred_categories for cat in {"bar", "nightlife"}):
+        if _is_movie_like(candidate):
+            return False
 
     return True
 
@@ -82,14 +101,18 @@ def _score_candidate(candidate: dict[str, Any], payload: dict[str, Any]) -> floa
     category = (candidate.get("category") or "").lower()
     activity_type = (candidate.get("activity_type") or "").lower()
     tags = [str(t).lower() for t in (candidate.get("tags") or [])]
+    place_name = (candidate.get("place_name") or "").lower()
+    title = (candidate.get("title") or "").lower()
 
     if preferred_categories:
         if category in preferred_categories:
-            score += 30
+            score += 35
         elif activity_type in preferred_categories:
-            score += 15
+            score += 18
         elif any(tag in preferred_categories for tag in tags):
-            score += 10
+            score += 12
+        else:
+            score -= 18
 
     quality_score = candidate.get("quality_score")
     rating = candidate.get("rating")
@@ -147,6 +170,21 @@ def _score_candidate(candidate: dict[str, Any], payload: dict[str, Any]) -> floa
     if candidate.get("estimated_cost_cents") is not None:
         score += 2
 
+    if category == "cafe":
+        score -= 8
+
+    # Strongly deprioritize movie/cinema style places even if they are classified broadly
+    if (
+        category == "movie_theater"
+        or "cinema" in place_name
+        or "cinema" in title
+        or "movie" in place_name
+        or "movie" in title
+        or "theatre" in place_name
+        or "theater" in place_name
+    ):
+        score -= 60
+
     return round(score, 2)
 
 
@@ -164,6 +202,21 @@ def _dedupe_candidates(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]
 
     return deduped
 
+
+def _get_category_cap(category: str) -> int:
+    caps = {
+        "movie_theater": 1,
+        "cafe": 1,
+        "bar": 2,
+        "museum": 2,
+        "park": 2,
+        "restaurant": 1,
+        "entertainment": 2,
+        "family_activity": 2,
+        "arcade": 1,
+        "bowling": 1,
+    }
+    return caps.get(category, 2)
 
 # Testing revealed that certain categories were suggested more since the scores in those categories would be highest
 # In test_trip_generator.py, the first test showed that 9/10 of top results were museums, this makes recommendations less diverse
@@ -193,6 +246,8 @@ def _select_diverse_candidates_for_trip(
 
             place_id = candidate["place_id"]
             category = (candidate.get("category") or "general").lower()
+            if category == "general":
+                continue
 
             if place_id in used_place_ids:
                 continue
@@ -200,7 +255,7 @@ def _select_diverse_candidates_for_trip(
             if day_category_counts[category] >= 1:
                 continue
 
-            if trip_category_counts[category] >= 2:
+            if trip_category_counts[category] >= _get_category_cap(category):
                 continue
 
             day_selected.append(candidate)
@@ -236,30 +291,69 @@ def _build_itinerary_structure(
 ) -> list[dict[str, Any]]:
     itinerary_items: list[dict[str, Any]] = []
 
-    selected = _select_diverse_candidates_for_trip( # Enforces diverse options
+    selected = _select_diverse_candidates_for_trip(
         ranked_candidates=ranked_candidates,
         trip_days=trip_days,
         activities_per_day=activities_per_day,
     )
 
-    for idx, candidate in enumerate(selected):
-        day_number = (idx // activities_per_day) + 1
-        item_order = (idx % activities_per_day) + 1
-        scheduled_date = start_date + timedelta(days=day_number - 1)
+    def is_bar_or_nightlife(candidate: dict[str, Any]) -> bool:
+        category = (candidate.get("category") or "").lower()
+        activity_type = (candidate.get("activity_type") or "").lower()
+        return category == "bar" or activity_type == "nightlife"
 
-        itinerary_items.append({
-            "day_number": day_number,
-            "item_order": item_order,
-            "scheduled_date": scheduled_date,
-            "place_id": candidate["place_id"],
-            "activity_id": candidate["activity_id"],
-            "source_type": "generated",
-            "selection_reason": (
-                f"score={candidate['recommendation_score']}; "
-                f"category={candidate.get('category')}; "
-                f"activity_type={candidate.get('activity_type')}"
-            ),
-        })
+    def is_daytime_anchor(candidate: dict[str, Any]) -> bool:
+        category = (candidate.get("category") or "").lower()
+        activity_type = (candidate.get("activity_type") or "").lower()
+        return category in {"museum", "park", "landmark", "aquarium", "zoo"} or activity_type in {
+            "sightseeing",
+            "outdoor",
+        }
+
+    total_selected = len(selected)
+
+    for day_idx in range(trip_days):
+        start = day_idx * activities_per_day
+        end = min(start + activities_per_day, total_selected)
+        day_candidates = selected[start:end]
+
+        daytime = []
+        middle = []
+        nightlife = []
+
+        for candidate in day_candidates:
+            if is_bar_or_nightlife(candidate):
+                nightlife.append(candidate)
+            elif is_daytime_anchor(candidate):
+                daytime.append(candidate)
+            else:
+                middle.append(candidate)
+
+        # keep stronger scored items first within each bucket
+        daytime.sort(key=lambda c: -(c.get("recommendation_score") or 0))
+        middle.sort(key=lambda c: -(c.get("recommendation_score") or 0))
+        nightlife.sort(key=lambda c: -(c.get("recommendation_score") or 0))
+
+        ordered_day = daytime + middle + nightlife
+
+        for item_idx, candidate in enumerate(ordered_day):
+            day_number = day_idx + 1
+            item_order = item_idx + 1
+            scheduled_date = start_date + timedelta(days=day_number - 1)
+
+            itinerary_items.append({
+                "day_number": day_number,
+                "item_order": item_order,
+                "scheduled_date": scheduled_date,
+                "place_id": candidate["place_id"],
+                "activity_id": candidate["activity_id"],
+                "source_type": "generated",
+                "selection_reason": (
+                    f"score={candidate['recommendation_score']}; "
+                    f"category={candidate.get('category')}; "
+                    f"activity_type={candidate.get('activity_type')}"
+                ),
+            })
 
     return itinerary_items
 
@@ -335,7 +429,15 @@ def generate_trip_from_preferences(payload: dict[str, Any]) -> dict[str, Any]:
         activities_per_day=int(payload.get("activities_per_day", 3)),
     )
 
+    delete_trip_itinerary_items(trip["id"])
+
+    seen_slots: set[tuple[int, int]] = set()
+
     for item in itinerary_items: # The function that actually inserts each item into the itinerary
+        slot = (item["day_number"], item["item_order"])
+        if slot in seen_slots:
+            continue
+        seen_slots.add(slot)
         insert_trip_itinerary_item({
             "trip_id": trip["id"],
             **item,
