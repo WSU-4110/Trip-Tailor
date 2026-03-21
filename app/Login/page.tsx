@@ -1,5 +1,5 @@
 "use client";
-
+import Link from 'next/link'
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -91,6 +91,12 @@ try {
             onClick={() => router.push("/signup")}
             className="cursor-pointer text-blue-600 hover:underline"
           >
+            <Link
+  href="/signup"
+  className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+>
+  Sign Up
+</Link>
             Sign Up
           </span>
         </p>
