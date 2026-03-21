@@ -1,5 +1,5 @@
 "use client";
-import Link from 'next/link'
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -13,42 +13,45 @@ export default function SignInPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-// validation
-if (!email || !password) {
-  setError("Please fill in all fields");
-  return;
-}
+    // validation
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
 
-try {
-  const res = await fetch("http://127.0.0.1:5000/api/v1/auth/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ email, password }),
-  });
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-  const data = await res.json();
+      const data = await res.json();
 
-  if (!res.ok) {
-    setError(data.error || "Invalid credentials");
-    return;
-  }
+      if (!res.ok) {
+        setError(data.error || "Invalid credentials");
+        return;
+      }
 
-  // store token
-  localStorage.setItem("access_token", data.access_token);
+      // store token
+      localStorage.setItem("access_token", data.access_token);
 
-  // redirect
-  router.push("/dashboard");
+      // redirect
+      router.push("/dashboard");
 
-} catch (err) {
-  setError("Server error");
-}
+    } catch (err) {
+      setError("Server error");
+    }
+  }; 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold text-black">Sign In</h1>
+        <h1 className="mb-6 text-center text-2xl font-bold text-black">
+          Sign In
+        </h1>
 
         {error && (
           <p className="mb-4 text-center text-red-500">{error}</p>
@@ -56,7 +59,9 @@ try {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-base font-medium text-black">Email</label>
+            <label className="block text-base font-medium text-black">
+              Email
+            </label>
             <input
               type="email"
               className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -67,7 +72,9 @@ try {
           </div>
 
           <div>
-            <label className="block text-base font-medium text-black">Password</label>
+            <label className="block text-base font-medium text-black">
+              Password
+            </label>
             <input
               type="password"
               className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -87,20 +94,14 @@ try {
 
         <p className="mt-4 text-center text-sm">
           Don’t have an account?{" "}
-          <span
-            onClick={() => router.push("/signup")}
-            className="cursor-pointer text-blue-600 hover:underline"
+          <Link
+            href="/Signup"
+            className="text-blue-600 hover:underline"
           >
-            <Link
-  href="/signup"
-  className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
->
-  Sign Up
-</Link>
             Sign Up
-          </span>
+          </Link>
         </p>
       </div>
     </div>
   );
-}}
+}
