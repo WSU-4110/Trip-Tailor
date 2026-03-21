@@ -6,6 +6,11 @@ import Link from 'next/link'
 import { getTrip } from '@/lib/trip-store'
 import { getPresetTrip } from '@/lib/presets'
 import type { Trip } from '@/lib/trip-store'
+import {
+  AddItemCommand,
+  RemoveItemCommand,
+  EditItemCommand
+} from '@/lib/commands/itinerary-commands'
 
 export default function TripPage() {
   const params = useParams()
@@ -13,6 +18,16 @@ export default function TripPage() {
   const [trip, setTrip] = useState<Trip | null>(null)
   const [notFound, setNotFound] = useState(false)
 
+  function executeCommand(command: { execute: () => void }) {
+  try {
+    command.execute()
+
+    // Force React to re-render
+    setTrip({ ...trip! })
+  } catch (e: any) {
+    alert(e.message)
+  }
+}
   useEffect(() => {
     if (!id) return
     const stored = getTrip(id)
@@ -57,7 +72,7 @@ export default function TripPage() {
     )
   }
 
-  const title = trip.destination + (trip.startDate && trip.endDate ? ` · ${trip.startDate} – ${trip.endDate}` : '')
+  const title = trip.destination + (trip.startDate && trip.endDate ? ` · ${trip.startDate} - ${trip.endDate}` : '')
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
@@ -84,19 +99,87 @@ export default function TripPage() {
               </div>
               <ul className="divide-y divide-gray-200">
                 {day.items.map((item) => (
+
                   <li key={item.id} className="px-6 py-4">
+                   <div className="flex items-start justify-between gap-4">
+
+
+                   {/* Item Info */}
                     <div className="flex items-start gap-4">
-                      {item.time ? (
-                        <span className="text-sm font-medium text-primary-600 shrink-0 w-14">{item.time}</span>
-                      ) : null}
-                      <div>
-                        <h3 className="font-medium text-gray-900">{item.name}</h3>
-                        {item.description ? (
-                          <p className="text-sm text-gray-600 mt-0.5">{item.description}</p>
-                        ) : null}
+                     {item.time && (
+                        <span className="text-sm font-medium text-primary-600 w-14">
+                          {item.time}
+                         </span>
+                      )}
+
+                     <div>
+                       <h3 className="font-medium text-gray-900">
+                         {item.name}
+                       </h3>
+
+                       {item.description && (
+                         <p className="text-sm text-gray-600 mt-0.5">
+                           {item.description}
+                         </p>
+                       )}
                       </div>
                     </div>
-                  </li>
+
+
+                       {/* Edit Button */}
+                      <button
+                        className="text-blue-600 text-sm hover:underline"
+                        onClick={() => {
+                          const newName = prompt('Edit activity name:', item.name)
+                          if (!newName) return
+                          const newTime = prompt('Edit time:', item.time || '') || undefined
+                          const newDesc = prompt('Edit description:', item.description || '') || undefined
+
+                          executeCommand(
+                            new EditItemCommand(trip!, day.day, item.id, {
+                              name: newName,
+                              time: newTime,
+                              description: newDesc,
+                            })
+                          )
+                        }}
+                      >
+                        Edit
+                      </button>
+
+
+                    {/* Remove Button */}
+                    <button
+                     className="text-red-500 text-sm hover:underline"
+                     onClick={() =>
+                       executeCommand(
+                         new RemoveItemCommand(trip!, day.day, item.id)
+                       )
+                     }
+                   >
+                    Remove
+                   </button>
+
+                   
+                   {/* Add Button */}
+                  <button
+                    className="m-4 px-3 py-1 bg-primary-600 text-white rounded"
+                    onClick={() =>
+                      executeCommand(
+                        new AddItemCommand(trip!, day.day, {
+                        id: crypto.randomUUID(),
+                        name: 'New Activity',
+                        time: '12:00',
+                        description: 'User added item'
+                      })
+                    )
+                  }
+                >
+                 + Add Item
+                </button>
+                  </div>
+                </li>
+
                 ))}
               </ul>
             </section>
