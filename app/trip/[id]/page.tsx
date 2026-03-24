@@ -47,7 +47,7 @@ export default function TripPage() {
     return (
       <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
         <div className="container mx-auto px-6 max-w-2xl text-center">
-          <h1 className="text-2xl font-bold text-white-900 mb-4">Trip not found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Trip not found</h1>
           <p className="text-gray-600 mb-6">This itinerary may have been removed or the link is invalid.</p>
           <div className="flex gap-4 justify-center">
             <Link href="/my-trips" className="text-primary-600 font-semibold hover:underline">
