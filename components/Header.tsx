@@ -26,7 +26,7 @@ export default function Header() {
   return (
     <nav className="container mx-auto px-6 py-6">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors">
+        <Link href="/" className="text-2xl font-bold text-blue-500 hover:text-primary-700 transition-colors">
           TripTailor
         </Link>
         
