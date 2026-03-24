@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">

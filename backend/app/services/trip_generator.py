@@ -10,6 +10,9 @@ from app.repositories.trips_repo import create_trip, get_full_trip, update_trip_
 from app.repositories.trip_preferences_repo import upsert_trip_preferences
 from app.repositories.trip_itinerary_repo import insert_trip_itinerary_item, delete_trip_itinerary_items
 
+from app.repositories.city_coverage_repo import get_city_coverage
+from app.services.live_place_ingestion import ingest_city_live
+
 
 # Converts the payload to a JSON-safe version before saving it so start and end_date objects can be saved in the JSON format
 def _make_json_safe(value: Any) -> Any:
@@ -370,7 +373,7 @@ def _build_itinerary_structure(
             else:
                 nightlife_slots = 0
         else:
-            nightlife_slots = 0
+            nightlife_slots = min(len(nightlife), 1)
 
         nightlife_slots = min(nightlife_slots, len(nightlife))
         daytime_slots = activities_per_day - nightlife_slots
@@ -445,6 +448,18 @@ def generate_trip_from_preferences(payload: dict[str, Any]) -> dict[str, Any]:
         "excluded_categories": payload.get("excluded_categories"),
         "raw_questionnaire": _make_json_safe(payload),
     })
+
+    coverage = get_city_coverage(
+        city=payload["destination_city"],
+        region=payload.get("destination_region"),
+    )
+
+    if not coverage or not coverage["is_seeded"]:
+        ingest_city_live(
+            city=payload["destination_city"],
+            region=payload.get("destination_region") or "",
+            country=payload.get("destination_country", "US"),
+        )
 
     candidates = get_candidate_activities_for_city(
         city=payload["destination_city"],

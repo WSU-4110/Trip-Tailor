@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -9,6 +9,8 @@ export default function SignInPage() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string>("");
+  
+const [success, setSuccess] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,21 +22,46 @@ export default function SignInPage() {
     }
 
     try {
-      // nathaniel put in the api here
-      if (email === "test@test.com" && password === "123456") {
-        router.push("/dashboard");
-      } else {
-        setError("Invalid credentials");
+      const res = await fetch("http://127.0.0.1:5000/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid credentials");
+        return;
       }
+
+      // store token
+      localStorage.setItem("access_token", data.access_token);
+        // store token
+      localStorage.setItem("access_token", data.access_token);
+
+      // show success message
+      setSuccess("Login successful! Redirecting...");
+
+      // redirect after 1 second
+      setTimeout(() => {
+        router.push("/questionnaire");
+      }, 1000);
+      
+
     } catch (err) {
-      setError("Something went wrong");
+      setError("Server error");
     }
-  };
+  }; 
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-6 text-center text-2xl font-bold text-black">Sign In</h1>
+        <h1 className="mb-6 text-center text-2xl font-bold text-black">
+          Sign In
+        </h1>
 
         {error && (
           <p className="mb-4 text-center text-red-500">{error}</p>
@@ -42,7 +69,9 @@ export default function SignInPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-base font-medium text-black">Email</label>
+            <label className="block text-base font-medium text-black">
+              Email
+            </label>
             <input
               type="email"
               className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -53,7 +82,9 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label className="block text-base font-medium text-black">Password</label>
+            <label className="block text-base font-medium text-black">
+              Password
+            </label>
             <input
               type="password"
               className="mt-1 w-full rounded-lg border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -73,12 +104,12 @@ export default function SignInPage() {
 
         <p className="mt-4 text-center text-sm">
           Don’t have an account?{" "}
-          <span
-            onClick={() => router.push("/signup")}
-            className="cursor-pointer text-blue-600 hover:underline"
+          <Link
+            href="/Signup"
+            className="text-blue-600 hover:underline"
           >
             Sign Up
-          </span>
+          </Link>
         </p>
       </div>
     </div>

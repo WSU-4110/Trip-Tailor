@@ -306,8 +306,8 @@ def _normalize_category(category: Optional[str]) -> str:
     category_aliases = {
         "movie": "movie_theater",
         "cinema": "movie_theater",
-        "theater": "entertainment",
-        "theatre": "entertainment",
+        "theater": "movie_theater",
+        "theatre": "movie_theater",
         "coffee": "cafe",
         "food": "restaurant",
         "nightlife": "bar",

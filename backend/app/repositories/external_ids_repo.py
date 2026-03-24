@@ -32,5 +32,11 @@ def upsert_place_external_id(
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, 
-                        (place_id, source, external_id, source_url,
-                        Json(raw_payload) if raw_payload else None))
+                        (
+                            place_id, 
+                            source,
+                            external_id, 
+                            source_url,
+                            Json(raw_payload) if raw_payload else None,
+                        ),
+                    )
