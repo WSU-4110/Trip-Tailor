@@ -30,18 +30,27 @@ def _parse_us_formatted_address(formatted: Optional[str]) -> dict:
     postal_code = None
     country = None
 
-    if len(parts) >= 2:
-        country = _country_to_iso(parts[-1])
 
-    if len(parts) >= 3:
-        state_zip = parts[-2]
+
+    last_part = parts[-1] if len(parts) >= 2 else None
+    possible_country = _country_to_iso(last_part)
+    is_state_zip = re.match(r"^[A-Z]{2}(?:\s+\d{5}(?:-\d{4})?)?$", last_part or "")
+
+    if possible_country and not is_state_zip:
+        country = possible_country
+        parts = parts[:-1]  # remove country from parsing
+    else:
+        country = "US"  # default
+
+    if len(parts) >= 2:
+        state_zip = parts[-1]
         m = re.match(r"^([A-Z]{2})(?:\s+(\d{5}(?:-\d{4})?))?$", state_zip)
         if m:
             region = m.group(1)
             postal_code = m.group(2)
 
-    if len(parts) >= 4:
-        city = parts[-3]
+    if len(parts) >= 3:
+        city = parts[-2]
 
     return {
         "address_line1": address_line1,
