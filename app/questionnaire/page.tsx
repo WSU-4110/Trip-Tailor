@@ -15,9 +15,7 @@ export default function QuestPage() {
     }
   }, []);
 
-  if (typeof window !== "undefined" && !localStorage.getItem("access_token")) {
-    return null;
-  }
+
 
   return <TripTailor />;
 }

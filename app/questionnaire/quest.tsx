@@ -87,12 +87,12 @@ export default function TripTailorQuestionnaire() {
   const [multiAnswers, setMultiAnswers] = useState<string[]>([]);
   const router = useRouter();
   useEffect(() => {
-  const user = localStorage.getItem("user");
+    const token = localStorage.getItem("access_token");
 
-  if (!user) {
-    router.push("/login");
-  }
-}, [router]);
+    if (!token) {
+      router.push("/Login");
+    }
+  }, [router]);
 
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
