@@ -228,7 +228,9 @@ export default function TripTailorQuestionnaire() {
 
   
     return (
-  <div className="min-h-screen bg-white flex p-6 gap-10">
+  <div className="min-h-screen bg-white flex p-6 gap-10"
+  style={{ backgroundImage: "url('/londongbridge.jpg')" }}
+  >
 
     {/* Progress Sidebar */}
     <div className="w-1/3">
@@ -237,7 +239,7 @@ export default function TripTailorQuestionnaire() {
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
         <div
-          className="bg-blue-600 h-4 rounded-full transition-all"
+          className="bg-blue-600 h-2 rounded-full transition-all"
           style={{ width: `${(current / questions.length) * 100}%` }}
         />
       </div>
