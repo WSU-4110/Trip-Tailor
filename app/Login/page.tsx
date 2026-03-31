@@ -22,7 +22,7 @@ const [success, setSuccess] = useState<string>("");
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/api/v1/auth/login", {
+      const res = await fetch("http://127.0.0.1:5050/api/v1/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -39,8 +39,7 @@ const [success, setSuccess] = useState<string>("");
 
       // store token
       localStorage.setItem("access_token", data.access_token);
-        // store token
-      localStorage.setItem("access_token", data.access_token);
+        
 
       // show success message
       setSuccess("Login successful! Redirecting...");
@@ -48,6 +47,7 @@ const [success, setSuccess] = useState<string>("");
       // redirect after 1 second
       setTimeout(() => {
         router.push("/questionnaire");
+        window.location.reload();
       }, 1000);
       
 

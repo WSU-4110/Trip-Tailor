@@ -3,6 +3,11 @@
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import {
+  AddItemCommand,
+  RemoveItemCommand,
+  EditItemCommand
+} from '@/lib/commands/itinerary-commands'
 
 type ItineraryItem = {
   id: string
@@ -63,6 +68,16 @@ export default function TripPage() {
   const [trip, setTrip] = useState<TripResponse | null>(null)
   const [notFound, setNotFound] = useState(false)
 
+  function executeCommand(command: { execute: () => void }) {
+  try {
+    command.execute()
+
+    // Force React to re-render
+    setTrip({ ...trip! })
+  } catch (e: any) {
+    alert(e.message)
+  }
+}
   useEffect(() => {
     if (!id) return
     async function loadTrip() {

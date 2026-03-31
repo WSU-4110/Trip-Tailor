@@ -1,4 +1,46 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
 export default function SignUpPage() {
+  const router = useRouter();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://127.0.0.1:5050/api/v1/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Signup failed");
+        return;
+      }
+
+      router.push("/Login");
+
+    } catch (err) {
+      setError("Server error");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       
@@ -7,7 +49,12 @@ export default function SignUpPage() {
         <h1 className="text-3xl font-bold text-center text-primary-600 mb-6">
           Create Account
         </h1>
-        <form className="space-y-5">
+      
+        {error && (
+          <p className="text-red-500 text-center mb-4">{error}</p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
 
           <div>
             <label className="block text-gray-700 font-medium mb-1">
@@ -26,6 +73,8 @@ export default function SignUpPage() {
             <input
               type="email"
               placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>
@@ -38,6 +87,8 @@ export default function SignUpPage() {
             <input
               type="password"
               placeholder="Enter your password"
+               value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             />
           </div>

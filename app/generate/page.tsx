@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -12,6 +12,12 @@ export default function GeneratePage() {
   const [endDate, setEndDate] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/Login");
+    }
+  }, []);
 
   function validate(): boolean {
     const next: Record<string, string> = {}

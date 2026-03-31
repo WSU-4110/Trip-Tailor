@@ -1,6 +1,8 @@
 "use client";
-
-import { useState } from "react";
+//this page is used after the generation page so user can give the database variable to use to generate trips
+//the variable is such as interests, energy level
+//disability accomodation //age // indoor/outdoorness
+import { useState,useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Question = {
@@ -37,11 +39,7 @@ const TRANSPORT = [
 ]
 
 const questions: Question[] = [
-  {
-    text: "Are you ready to plan your trip?",
-    options: ["Yes", "No"],
-    type: "single",
-  },
+  
   {
     text: "What kind of trip do you envision?",
     options: ["Relaxing", "Somewhere In-Between", "High Octane"],
@@ -88,6 +86,13 @@ export default function TripTailorQuestionnaire() {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [multiAnswers, setMultiAnswers] = useState<string[]>([]);
   const router = useRouter();
+  useEffect(() => {
+  const user = localStorage.getItem("user");
+
+  if (!user) {
+    router.push("/login");
+  }
+}, [router]);
 
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -223,7 +228,9 @@ export default function TripTailorQuestionnaire() {
 
   
     return (
-  <div className="min-h-screen bg-white flex p-6 gap-10">
+  <div className="min-h-screen bg-white flex p-6 gap-10"
+  style={{ backgroundImage: "url('/londongbridge.jpg')" }}
+  >
 
     {/* Progress Sidebar */}
     <div className="w-1/3">
@@ -232,7 +239,7 @@ export default function TripTailorQuestionnaire() {
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 rounded-full h-4 mb-6">
         <div
-          className="bg-blue-600 h-4 rounded-full transition-all"
+          className="bg-blue-600 h-2 rounded-full transition-all"
           style={{ width: `${(current / questions.length) * 100}%` }}
         />
       </div>

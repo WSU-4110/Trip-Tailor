@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 type TripListItem = {
   id: string
@@ -31,9 +32,17 @@ function formatDateRange(start: string, end: string) {
 }
 
 export default function MyTripsPage() {
+  const router = useRouter();
   const [trips, setTrips] = useState<TripListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/Login");
+    }
+  }, []);
 
   useEffect(() => {
     async function loadTrips(){
