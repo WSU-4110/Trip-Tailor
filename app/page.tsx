@@ -1,5 +1,7 @@
 import Link from 'next/link'
 
+
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
@@ -23,12 +25,7 @@ export default function Home() {
               Create Your Itinerary
             </Link>
 
-            <Link
-              href="/questionnaire"
-              className="bg-cyan-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-cyan-700 transition-all transform hover:scale-105 shadow-lg"
-            >
-              Start Questionnaire
-            </Link>
+            
 
             <Link
               href="/trips"
@@ -138,8 +135,8 @@ export default function Home() {
             <div>
               <h4 className="font-semibold text-gray-900 mb-4">Company</h4>
               <ul className="space-y-2 text-gray-600">
-                <li><Link href="/about" className="hover:text-primary-600">About</Link></li>
-                <li><Link href="/blog" className="hover:text-primary-600">Blog</Link></li>
+                <li><Link href="/About" className="hover:text-primary-600">About</Link></li>
+                
                 <li><Link href="/contact" className="hover:text-primary-600">Contact</Link></li>
                 
               </ul>

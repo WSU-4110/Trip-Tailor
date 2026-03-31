@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 import os
 from .extensions import bcrypt, jwt
+from flask_cors import CORS
 from app.repositories.auth_repo import get_user_by_email, create_user
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -11,6 +12,8 @@ from app.repositories.places_repo import list_places, get_place_by_id
 
 def create_app():
     app = Flask(__name__)
+
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000"]}}, supports_credentials=True,)
 
     # Only used for auth; DB is handled by psycopg2 in app/db.py
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev-secret-key")

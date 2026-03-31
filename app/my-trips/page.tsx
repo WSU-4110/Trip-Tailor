@@ -2,14 +2,71 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getAllTrips } from '@/lib/trip-store'
-import type { Trip } from '@/lib/trip-store'
+import { useRouter } from 'next/navigation'
+
+type TripListItem = {
+  id: string
+  title: string
+  destination_city: string
+  destination_region: string | null
+  start_date: string
+  end_date: string
+  trip_days: number
+  status: string
+  created_at: string
+}
+
+function formatDateRange(start: string, end: string) {
+  const startDate = new Date(start)
+  const endDate = new Date(end)
+
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    day: 'numeric',
+  }
+
+  const startFormatted = startDate.toLocaleDateString('en-US', options)
+  const endFormatted = endDate.toLocaleDateString('en-US', options)
+
+  return `${startFormatted} – ${endFormatted}`
+}
 
 export default function MyTripsPage() {
-  const [trips, setTrips] = useState<Trip[]>([])
+  const router = useRouter();
+  const [trips, setTrips] = useState<TripListItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    setTrips(getAllTrips())
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/Login");
+    }
+  }, []);
+
+  useEffect(() => {
+    async function loadTrips(){
+      try {
+        setIsLoading(true)
+        setLoadError(null)
+
+        const res = await fetch('http://localhost:5050/api/v1/trips')
+
+        if (!res.ok){
+          throw new Error('Failed to load trips')
+        }
+
+        const data = await res.json()
+        setTrips(data)
+      } catch (err) {
+        console.error(err)
+        setLoadError(err instanceof Error ? err.message: 'Something went wrong')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadTrips()
   }, [])
 
   return (
@@ -20,7 +77,16 @@ export default function MyTripsPage() {
           Your saved itineraries. Click a trip to view or continue editing.
         </p>
 
-        {trips.length === 0 ? (
+        {isLoading ? (
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center text-gray-600">
+            Loading your trips...
+          </div>
+        ) : loadError ? (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">
+            Failed to load trips. Please try again.
+            <div className="mt-2 text-sm">{loadError}</div>
+          </div>
+        ) : trips.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 text-center">
             <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,7 +107,7 @@ export default function MyTripsPage() {
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
             {trips.map((trip) => {
-              const title = `${trip.destination}${trip.startDate && trip.endDate ? ` · ${trip.startDate} – ${trip.endDate}` : ''}`
+              const title = `${trip.title}${trip.start_date && trip.end_date ? ` · ${formatDateRange(trip.start_date, trip.end_date)}` : ''}`
               return (
                 <li key={trip.id}>
                   <Link
@@ -53,9 +119,12 @@ export default function MyTripsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                       </svg>
                     </div>
-                    <h2 className="text-lg font-semibold text-gray-900 mb-1">{title}</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 mb-1">{trip.title}</h2>
+                    <p className="text-sm text-gray-500 mb-1">
+                      {formatDateRange(trip.start_date, trip.end_date)}
+                    </p>
                     <p className="text-sm text-gray-600">
-                      {trip.days.length} day{trip.days.length !== 1 ? 's' : ''}
+                      {trip.trip_days} day{trip.trip_days !== 1 ? 's' : ''}
                     </p>
                   </Link>
                 </li>

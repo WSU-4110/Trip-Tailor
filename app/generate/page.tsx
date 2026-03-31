@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createTripFromQuestionnaire } from '@/lib/trip-store'
+
 
 export default function GeneratePage() {
   const router = useRouter()
@@ -12,6 +12,12 @@ export default function GeneratePage() {
   const [endDate, setEndDate] = useState('')
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      router.push("/Login");
+    }
+  }, []);
 
 function validate(): boolean {
   const next: Record<string, string> = {}
@@ -68,12 +74,14 @@ function validate(): boolean {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
-    const trip = createTripFromQuestionnaire({
+
+    const params = new URLSearchParams({
       destination: destination.trim(),
       startDate,
       endDate,
     })
-    router.push(`/trip/${trip.id}`)
+
+    router.push(`/questionnaire?${params.toString()}`)
   }
 
   return (
@@ -81,7 +89,7 @@ function validate(): boolean {
       <div className="container mx-auto px-6 max-w-2xl">
         <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Your Itinerary</h1>
         <p className="text-gray-600 mb-8">
-          Tell us about your trip and preferences so we can tailor your itinerary.
+          Enter your trip details to get started, then continue to the questionnaire.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -139,7 +147,7 @@ function validate(): boolean {
               type="submit"
               className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
             >
-              Generate itinerary
+              Start Questionnaire
             </button>
             <Link
               href="/"

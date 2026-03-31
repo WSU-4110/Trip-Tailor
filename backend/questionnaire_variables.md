@@ -29,17 +29,17 @@
 - find this data and the rest of the data that we will store about each place in `backend/app/services/place_variables.py`
 - to use it do something like the following (my code is for python so it might be different if using TS or another):
 ```python
-- from app.services.place_variables import build_google_place_variables
-- raw_place = google_results[0]
-- variables = build_google_place_variables(raw_place)
-- then for whatever actual variable you need:
-- rating = variables["rating"]
-- category = variables["category"]
-- effort_level = variables["effort_level"]
-- ...
+from app.services.place_variables import build_google_place_variables
+raw_place = google_results[0]
+variables = build_google_place_variables(raw_place)
+then for whatever actual variable you need:
+rating = variables["rating"]
+category = variables["category"]
+effort_level = variables["effort_level"]
+...
 
 - the data will be stored in the database which you will have to query, I will lyk when it is all correctly stored.
-
+```
 
 ## Important note
 Some variables come directly from Google/Yelp.

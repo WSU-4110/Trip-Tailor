@@ -1,19 +1,25 @@
 from typing import Any
 
-from app.services.normalize_place import normalize_google_place
-from app.services.place_classifier import classify_google_place
+from app.services.normalize_place import normalize_google_place, normalize_yelp_business
+from app.services.place_classifier import classify_google_place, classify_yelp_business
 
 
-def build_google_place_variables(raw: dict) -> dict[str, Any]:
+def build_place_variables(raw: dict, provider: str) -> dict[str, Any]:
     """
-    Build the full normalized variable set for a Google place.
+    Build the full normalized variable set for each providers place data
 
-    Combines:
-    - canonical place fields (identity/location/provider IDs)
-    - TripTailor recommendation/classification variables
+    Returns one dict that combines:
+    - canonical place fields (identity/location/provider IDs) for data.places
+    - TripTailor recommendation/classification variables for data.activites
     """
-    canonical = normalize_google_place(raw)
-    classified = classify_google_place(raw)
+    if provider == "google":
+        canonical = normalize_google_place(raw)
+        classified = classify_google_place(raw)
+    elif provider == "yelp":
+        canonical = normalize_yelp_business(raw)
+        classified = classify_yelp_business(raw)
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
 
     return {
         **canonical,
@@ -21,10 +27,9 @@ def build_google_place_variables(raw: dict) -> dict[str, Any]:
     }
 
 
-def get_google_place_variable_names() -> list[str]:
+def get_place_variable_names() -> list[str]:
     """
-    Returns the current variable names produced by build_google_place_variables().
-    Useful for documentation, debugging, and questionnaire/recommendation planning.
+    Returns the current variable names produced by each providers' build function.
     """
     return [
         "name",
