@@ -19,17 +19,57 @@ export default function GeneratePage() {
     }
   }, []);
 
-  function validate(): boolean {
-    const next: Record<string, string> = {}
-    if (!destination.trim()) next.destination = 'Destination is required'
-    if (!startDate) next.startDate = 'Start date is required'
-    if (!endDate) next.endDate = 'End date is required'
-    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-      next.endDate = 'End date must be on or after start date'
-    }
-    setErrors(next)
-    return Object.keys(next).length === 0
+function validate(): boolean {
+  const next: Record<string, string> = {}
+
+  if (!destination.trim()) next.destination = 'Destination is required'
+  if (!startDate) next.startDate = 'Start date is required'
+  if (!endDate) next.endDate = 'End date is required'
+
+  const today = new Date()
+  const currentYear = today.getFullYear()
+
+  function isValidDate(dateStr: string): boolean {
+    const parts = dateStr.split('-')
+    if (parts.length !== 3) return false
+
+    const year = Number(parts[0])
+    const month = Number(parts[1])
+    const day = Number(parts[2])
+
+    // Basic numeric checks
+    if (year < currentYear) return false
+    if (month < 1 || month > 12) return false
+    if (day < 1) return false
+
+    // Days in month (handles leap years automatically)
+    const daysInMonth = new Date(year, month, 0).getDate()
+    if (day > daysInMonth) return false
+
+    return true
   }
+
+  if (startDate && !isValidDate(startDate)) {
+    next.startDate = 'Start date is invalid'
+  }
+
+  if (endDate && !isValidDate(endDate)) {
+    next.endDate = 'End date is invalid'
+  }
+
+  if (
+    startDate &&
+    endDate &&
+    isValidDate(startDate) &&
+    isValidDate(endDate) &&
+    new Date(endDate) < new Date(startDate)
+  ) {
+    next.endDate = 'End date must be on or after start date'
+  }
+
+  setErrors(next)
+  return Object.keys(next).length === 0
+}
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
