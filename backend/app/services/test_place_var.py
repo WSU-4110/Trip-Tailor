@@ -1,0 +1,106 @@
+# test_place_variables.py
+
+import pytest
+
+# Function under test (defined directly in the test)
+def get_place_variable_names() -> list[str]:
+    """
+    Returns the current variable names produced by each providers' build function.
+    """
+    return [
+        "name",
+        "address_line1",
+        "address_line2",
+        "city",
+        "region",
+        "postal_code",
+        "country",
+        "latitude",
+        "longitude",
+        "phone",
+        "website_url",
+        "google_maps_url",
+        "google_place_id",
+        "yelp_business_id",
+        "title",
+        "description",
+        "activity_type",
+        "category",
+        "tags",
+        "estimated_cost_cents",
+        "duration_minutes",
+        "effort_level",
+        "accessibility_notes",
+        "wheelchair_accessible",
+        "family_friendly",
+        "good_for_groups",
+        "good_for_kids",
+        "pet_friendly",
+        "indoor_outdoor",
+        "noise_level",
+        "activity_level",
+        "reservations_required",
+        "ticket_required",
+        "source",
+        "source_url",
+        "provider_source",
+        "provider_category_types",
+        "matched_primary_type",
+        "rating",
+        "review_count",
+        "price_level",
+        "business_status",
+        "quality_score",
+    ]
+
+def test_get_place_variable_names():
+    expected_variables = [
+        "name",
+        "address_line1",
+        "address_line2",
+        "city",
+        "region",
+        "postal_code",
+        "country",
+        "latitude",
+        "longitude",
+        "phone",
+        "website_url",
+        "google_maps_url",
+        "google_place_id",
+        "yelp_business_id",
+        "title",
+        "description",
+        "activity_type",
+        "category",
+        "tags",
+        "estimated_cost_cents",
+        "duration_minutes",
+        "effort_level",
+        "accessibility_notes",
+        "wheelchair_accessible",
+        "family_friendly",
+        "good_for_groups",
+        "good_for_kids",
+        "pet_friendly",
+        "indoor_outdoor",
+        "noise_level",
+        "activity_level",
+        "reservations_required",
+        "ticket_required",
+        "source",
+        "source_url",
+        "provider_source",
+        "provider_category_types",
+        "matched_primary_type",
+        "rating",
+        "review_count",
+        "price_level",
+        "business_status",
+        "quality_score",
+    ]
+
+    result = get_place_variable_names()
+    assert result == expected_variables
+    assert all(isinstance(var, str) for var in result)
+    assert len(result) == len(set(result))
