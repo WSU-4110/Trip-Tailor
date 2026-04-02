@@ -170,6 +170,69 @@ function DeleteConfirm({
   )
 }
 
+function InlineEditForm({
+  item,
+  onSave,
+  onCancel,
+}: {
+  item: ItineraryItem
+  onSave: (name: string, address: string, notes: string) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState(item.custom_name ?? item.place_name ?? '')
+  const [address, setAddress] = useState(item.custom_address ?? item.address_line1 ?? '')
+  const [notes, setNotes] = useState(item.notes ?? '')
+  const isCustom = item.source_type === 'user'
+
+  return (
+    <div className="mt-3 p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+      {isCustom && (
+        <>
+          <div>
+            <label className="text-xs font-medium text-gray-600">Name</label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-600">Address <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+          </div>
+        </>
+      )}
+      <div>
+        <label className="text-xs font-medium text-gray-600">Notes <span className="text-gray-400 font-normal">(optional)</span></label>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={2}
+          className="w-full mt-0.5 text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+        />
+      </div>
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={() => onSave(name, address, notes)}
+          className="text-xs font-medium bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700"
+        >
+          Save
+        </button>
+        <button
+          onClick={onCancel}
+          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function NotesEditor({
   tripId,
   item,
@@ -252,6 +315,138 @@ function NotesEditor({
   )
 }
 
+function AddActivityPanel({
+  dayNumber,
+  addMode,
+  addAlternates,
+  loadingAddAlternates,
+  onChooseCustom,
+  onChooseRecommendations,
+  onAddCustom,
+  onAddRecommended,
+  onCancel,
+}: {
+  dayNumber: number
+  addMode: 'choice' | 'custom' | 'recommendations' | null
+  addAlternates: any[]
+  loadingAddAlternates: boolean
+  onChooseCustom: () => void
+  onChooseRecommendations: () => void
+  onAddCustom: (dayNumber: number, name: string, address: string, notes: string) => void
+  onAddRecommended: (alternate: any, dayNumber: number) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState('')
+  const [address, setAddress] = useState('')
+  const [notes, setNotes] = useState('')
+
+  if (addMode === 'choice') {
+    return (
+      <div className="px-5 py-4 border-t border-gray-100">
+        <p className="text-xs font-medium text-gray-600 mb-2">What would you like to add?</p>
+        <div className="flex gap-2">
+          <button
+            onClick={onChooseCustom}
+            className="flex-1 text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors"
+          >
+            Custom activity
+          </button>
+          <button
+            onClick={onChooseRecommendations}
+            className="flex-1 text-xs font-medium border border-indigo-200 text-indigo-600 hover:bg-indigo-50 px-3 py-2 rounded-lg transition-colors"
+          >
+            Recommendations
+          </button>
+          <button
+            onClick={onCancel}
+            className="text-xs text-gray-400 hover:text-gray-600 px-2 py-2"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (addMode === 'custom') {
+    return (
+      <div className="px-5 py-4 border-t border-gray-100 space-y-2">
+        <p className="text-xs font-medium text-gray-600">Add a custom activity</p>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name *"
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        />
+        <input
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          placeholder="Address (optional)"
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        />
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Notes (optional)"
+          rows={2}
+          className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+        />
+        <div className="flex gap-2 pt-1">
+          <button
+            onClick={() => { if (name.trim()) onAddCustom(dayNumber, name, address, notes) }}
+            className="text-xs font-medium bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700"
+          >
+            Add
+          </button>
+          <button
+            onClick={onCancel}
+            className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (addMode === 'recommendations') {
+    return (
+      <div className="border-t border-gray-100">
+        <div className="px-5 py-3 flex items-center justify-between">
+          <p className="text-xs font-medium text-gray-600">Recommended activities</p>
+          <button onClick={onCancel} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+        </div>
+        {loadingAddAlternates ? (
+          <div className="px-5 py-4 text-xs text-gray-400">Loading recommendations...</div>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {addAlternates.map((alt) => (
+              <li key={alt.activity_id} className="flex items-center justify-between gap-3 px-5 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate">{alt.place_name}</p>
+                  <p className="text-xs text-gray-500">
+                    {alt.category?.replace(/_/g, ' ')}
+                    {alt.rating ? ` · ★ ${alt.rating}` : ''}
+                    {alt.estimated_cost_cents !== null ? ` · ${formatCost(alt.estimated_cost_cents)}` : ''}
+                  </p>
+                </div>
+                <button
+                  onClick={() => onAddRecommended(alt, dayNumber)}
+                  className="flex-shrink-0 text-xs font-medium text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  Add
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  }
+
+  return null
+}
+
 function ActivityCard({
   item,
   index,
@@ -267,6 +462,10 @@ function ActivityCard({
   loadingAlternates,
   onFetchAlternates,
   onSwap,
+  editItemId,
+  onRequestEdit,
+  onEditSave,
+  onEditCancel,
 }: {
   item: ItineraryItem
   index: number
@@ -278,10 +477,14 @@ function ActivityCard({
   onCancelDelete: () => void
   onConfirmDelete: (itemId: string) => void
   alternatesItemId: string | null
-  alternatesList: Record<string, any[]>
+  alternatesList: any[]
   loadingAlternates: boolean
   onFetchAlternates: (itemId: string) => void
   onSwap: (oldItem: ItineraryItem, alternate: any) => void
+  editItemId: string | null
+  onEditSave: (item: ItineraryItem, name: string, address: string, notes: string) => void
+  onEditCancel: () => void
+  onRequestEdit: (itemId: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -322,7 +525,7 @@ function ActivityCard({
               {editMode && (
                 <>
                   {/* Pencil - edit */}
-                  <IconButton label="Edit" onClick={() => {}}>
+                  <IconButton label="Edit" onClick={() => onRequestEdit(item.id)}>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
@@ -359,7 +562,7 @@ function ActivityCard({
                 <div className="px-3 py-4 text-xs text-gray-400">Loading suggestions...</div>
               ) : (
                 <ul className="divide-y divide-gray-100">
-                  {(alternatesList[item.id] || []).map((alt) => (
+                  {alternatesList.map((alt) => (
                     <li key={alt.activity_id} className="flex items-center justify-between gap-3 px-3 py-3">
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{alt.place_name}</p>
@@ -382,6 +585,13 @@ function ActivityCard({
             </div>
           )}
 
+          {editItemId === item.id && (
+            <InlineEditForm
+              item={item}
+              onSave={(name, address, notes) => onEditSave(item, name, address, notes)}
+              onCancel={onEditCancel}
+            />
+          )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
             {item.rating !== null && (
@@ -494,8 +704,13 @@ export default function TripPage() {
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [alternatesItemId, setAlternatesItemId] = useState<string | null>(null)
-  const [alternates, setAlternates] = useState<Record<string, any[]>>({})
+  const [alternates, setAlternates] = useState<any[]>([])
   const [loadingAlternates, setLoadingAlternates] = useState(false)
+  const [addingToDayNumber, setAddingToDayNumber] = useState<number | null>(null)
+  const [addMode, setAddMode] = useState<'choice' | 'custom' | 'recommendations' | null>(null)
+  const [addAlternates, setAddAlternates] = useState<any[]>([])
+  const [loadingAddAlternates, setLoadingAddAlternates] = useState(false)
+  const [editItemId, setEditItemId] = useState<string | null>(null)
 
   function handleNotesSaved(itemId: string, notes: string) {
     setTrip((prev) => {
@@ -540,7 +755,7 @@ export default function TripPage() {
       return
     }
     setAlternatesItemId(itemId)
-    if (alternates[itemId]) return
+    setAlternates([])
     setLoadingAlternates(true)
     try {
       const res = await fetch(
@@ -548,7 +763,7 @@ export default function TripPage() {
       )
       if (!res.ok) throw new Error('Failed to fetch alternates')
       const data = await res.json()
-      setAlternates((prev) => ({ ...prev, [itemId]: data }))
+      setAlternates(data)
     } catch {
       alert('Failed to load suggestions. Please try again.')
       setAlternatesItemId(null)
@@ -597,6 +812,130 @@ export default function TripPage() {
       alert('Failed to swap activity. Please try again.')
     }
   }
+
+  async function fetchAddAlternates(dayNumber: number) {
+    setLoadingAddAlternates(true)
+    setAddAlternates([])
+    // Use any item id from the trip to hit the alternates endpoint
+    const anyItemId = trip?.itinerary_items[0]?.id
+    if (!anyItemId) return
+    try {
+      const res = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items/${anyItemId}/alternates`
+      )
+      if (!res.ok) throw new Error('Failed to fetch')
+      const data = await res.json()
+      setAddAlternates(data)
+    } catch {
+      alert('Failed to load recommendations. Please try again.')
+    } finally {
+      setLoadingAddAlternates(false)
+    }
+  }
+
+  async function handleAddRecommended(alternate: any, dayNumber: number) {
+    setSavingStatus('saving')
+    try {
+      const res = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            place_id: alternate.place_id,
+            activity_id: alternate.activity_id,
+            day_number: dayNumber,
+            source_type: 'user',
+          }),
+        }
+      )
+      if (!res.ok) throw new Error('Failed to add')
+      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
+      const tripData = await tripRes.json()
+      setTrip(tripData)
+      setAddingToDayNumber(null)
+      setAddMode(null)
+      setAddAlternates([])
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to add activity. Please try again.')
+    }
+  }
+
+  async function handleAddCustom(dayNumber: number, name: string, address: string, notes: string) {
+    setSavingStatus('saving')
+    try {
+      const res = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            custom_name: name,
+            custom_address: address || null,
+            notes: notes || null,
+            day_number: dayNumber,
+            source_type: 'user',
+          }),
+        }
+      )
+      if (!res.ok) throw new Error('Failed to add')
+      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
+      const tripData = await tripRes.json()
+      setTrip(tripData)
+      setAddingToDayNumber(null)
+      setAddMode(null)
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to add activity. Please try again.')
+    }
+  }
+
+  async function handleEditSave(item: ItineraryItem, name: string, address: string, notes: string) {
+    setSavingStatus('saving')
+    try {
+      await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items/${item.id}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            custom_name: item.source_type === 'user' ? name : undefined,
+            custom_address: item.source_type === 'user' ? address : undefined,
+            notes: notes,
+          }),
+        }
+      )
+      setTrip((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          itinerary_items: prev.itinerary_items.map((i) =>
+            i.id === item.id
+              ? {
+                  ...i,
+                  notes: notes,
+                  custom_name: item.source_type === 'user' ? name : i.custom_name,
+                  custom_address: item.source_type === 'user' ? address : i.custom_address,
+                  place_name: item.source_type === 'user' ? name : i.place_name,
+                }
+              : i
+          ),
+        }
+      })
+      setEditItemId(null)
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to save. Please try again.')
+    }
+  }
+
 
 
   useEffect(() => {
@@ -751,9 +1090,49 @@ export default function TripPage() {
                       loadingAlternates={loadingAlternates}
                       onFetchAlternates={fetchAlternates}
                       onSwap={handleSwap}
+                      editItemId={editItemId}
+                      onRequestEdit={setEditItemId}
+                      onEditSave={handleEditSave}
+                      onEditCancel={() => setEditItemId(null)}
                     />
                   ))}
                 </ul>
+
+{editMode && (
+                  addingToDayNumber === dayNumber ? (
+                    <AddActivityPanel
+                      dayNumber={dayNumber}
+                      addMode={addMode}
+                      addAlternates={addAlternates}
+                      loadingAddAlternates={loadingAddAlternates}
+                      onChooseCustom={() => setAddMode('custom')}
+                      onChooseRecommendations={() => {
+                        setAddMode('recommendations')
+                        fetchAddAlternates(dayNumber)
+                      }}
+                      onAddCustom={handleAddCustom}
+                      onAddRecommended={handleAddRecommended}
+                      onCancel={() => {
+                        setAddingToDayNumber(null)
+                        setAddMode(null)
+                        setAddAlternates([])
+                      }}
+                    />
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setAddingToDayNumber(dayNumber)
+                        setAddMode('choice')
+                      }}
+                      className="w-full px-5 py-3 text-xs font-medium text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center justify-center gap-1 border-t border-gray-100"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add activity
+                    </button>
+                  )
+                )}
               </section>
             )
           })}
