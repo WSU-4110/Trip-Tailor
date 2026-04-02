@@ -120,6 +120,56 @@ function Badge({ label, color }: { label: string; color: string }) {
   )
 }
 
+function IconButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="relative group">
+      <button
+        onClick={onClick}
+        className="w-7 h-7 rounded-md flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+      >
+        {children}
+      </button>
+      <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-0.5 rounded text-xs bg-gray-800 text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function DeleteConfirm({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: () => void
+  onCancel: () => void
+}) {
+  return (
+    <div className="flex items-center gap-2 mt-2 p-2 bg-red-50 border border-red-200 rounded-lg">
+      <p className="text-xs text-red-700 flex-1">Remove this activity?</p>
+      <button
+        onClick={onConfirm}
+        className="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md transition-colors"
+      >
+        Remove
+      </button>
+      <button
+        onClick={onCancel}
+        className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+      >
+        Cancel
+      </button>
+    </div>
+  )
+}
+
 function NotesEditor({
   tripId,
   item,
@@ -207,11 +257,21 @@ function ActivityCard({
   index,
   tripId,
   onNotesSaved,
+  editMode,
+  confirmDeleteId,
+  onRequestDelete,
+  onCancelDelete,
+  onConfirmDelete,
 }: {
   item: ItineraryItem
   index: number
   tripId: string
   onNotesSaved: (itemId: string, notes: string) => void
+  editMode: boolean
+  confirmDeleteId: string | null
+  onRequestDelete: (itemId: string) => void
+  onCancelDelete: () => void
+  onConfirmDelete: (itemId: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -243,12 +303,42 @@ function ActivityCard({
                 )}
               </div>
             </div>
-            {item.estimated_cost_cents !== null && (
-              <span className="flex-shrink-0 text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200">
-                {formatCost(item.estimated_cost_cents)}
-              </span>
-            )}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {item.estimated_cost_cents !== null && (
+                <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-200 mr-1">
+                  {formatCost(item.estimated_cost_cents)}
+                </span>
+              )}
+              {editMode && (
+                <>
+                  {/* Pencil - edit */}
+                  <IconButton label="Edit" onClick={() => {}}>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </IconButton>
+                  {/* Double arrow - swap */}
+                  <IconButton label="Swap" onClick={() => {}}>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                  </IconButton>
+                  {/* Trash - delete */}
+                  <IconButton label="Delete" onClick={() => onRequestDelete(item.id)}>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </IconButton>
+                </>
+              )}
+            </div>
           </div>
+          {confirmDeleteId === item.id && (
+            <DeleteConfirm
+              onConfirm={() => onConfirmDelete(item.id)}
+              onCancel={onCancelDelete}
+            />
+          )}
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
             {item.rating !== null && (
@@ -357,6 +447,9 @@ export default function TripPage() {
   const [trip, setTrip] = useState<TripResponse | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [editMode, setEditMode] = useState(false)
+  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   function handleNotesSaved(itemId: string, notes: string) {
     setTrip((prev) => {
@@ -368,6 +461,31 @@ export default function TripPage() {
         ),
       }
     })
+  }
+
+  async function handleDelete(itemId: string) {
+    setSavingStatus('saving')
+    try {
+      const res = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items/${itemId}`,
+        { method: 'DELETE' }
+      )
+      if (!res.ok) throw new Error('Failed to delete')
+      setTrip((prev) => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          itinerary_items: prev.itinerary_items.filter((i) => i.id !== itemId),
+        }
+      })
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to delete activity. Please try again.')
+    } finally {
+      setConfirmDeleteId(null)
+    }
   }
   useEffect(() => {
     if (!id) return
@@ -448,7 +566,27 @@ export default function TripPage() {
             </svg>
             Back to My Trips
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">{trip.trip.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">{trip.trip.title}</h1>
+            <div className="flex items-center gap-3 flex-shrink-0 mt-1">
+              {savingStatus === 'saving' && (
+                <span className="text-sm text-gray-400">Saving...</span>
+              )}
+              {savingStatus === 'saved' && (
+                <span className="text-sm text-emerald-600">Saved ✓</span>
+              )}
+              <button
+                onClick={() => setEditMode(!editMode)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                  editMode
+                    ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                {editMode ? 'Done Editing' : 'Edit Itinerary'}
+              </button>
+            </div>
+          </div>
           <p className="text-gray-500 mt-1">
             {trip.trip.destination_city}{trip.trip.destination_region ? `, ${trip.trip.destination_region}` : ''} · {formatDateRange(trip.trip.start_date, trip.trip.end_date)}
           </p>
@@ -460,6 +598,12 @@ export default function TripPage() {
             </div>
           ) : null}
         </div>
+
+        {editMode && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+            Edit mode — drag to reorder, or use the icons on each activity to swap, edit, or delete.
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {dayNumbers.map((dayNumber) => {
@@ -485,6 +629,11 @@ export default function TripPage() {
                       index={idx}
                       tripId={id}
                       onNotesSaved={handleNotesSaved}
+                      editMode={editMode}
+                      confirmDeleteId={confirmDeleteId}
+                      onRequestDelete={setConfirmDeleteId}
+                      onCancelDelete={() => setConfirmDeleteId(null)}
+                      onConfirmDelete={handleDelete}
                     />
                   ))}
                 </ul>
