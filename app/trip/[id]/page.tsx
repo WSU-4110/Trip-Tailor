@@ -262,6 +262,11 @@ function ActivityCard({
   onRequestDelete,
   onCancelDelete,
   onConfirmDelete,
+  alternatesItemId,
+  alternatesList,
+  loadingAlternates,
+  onFetchAlternates,
+  onSwap,
 }: {
   item: ItineraryItem
   index: number
@@ -272,6 +277,11 @@ function ActivityCard({
   onRequestDelete: (itemId: string) => void
   onCancelDelete: () => void
   onConfirmDelete: (itemId: string) => void
+  alternatesItemId: string | null
+  alternatesList: Record<string, any[]>
+  loadingAlternates: boolean
+  onFetchAlternates: (itemId: string) => void
+  onSwap: (oldItem: ItineraryItem, alternate: any) => void
 }) {
   const [expanded, setExpanded] = useState(false)
 
@@ -318,7 +328,7 @@ function ActivityCard({
                     </svg>
                   </IconButton>
                   {/* Double arrow - swap */}
-                  <IconButton label="Swap" onClick={() => {}}>
+                  <IconButton label="Swap" onClick={() => onFetchAlternates(item.id)}>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
@@ -339,6 +349,39 @@ function ActivityCard({
               onCancel={onCancelDelete}
             />
           )}
+
+          {alternatesItemId === item.id && (
+            <div className="mt-3 border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-3 py-2 bg-gray-50 border-b border-gray-200">
+                <p className="text-xs font-medium text-gray-600">Swap with a suggestion</p>
+              </div>
+              {loadingAlternates ? (
+                <div className="px-3 py-4 text-xs text-gray-400">Loading suggestions...</div>
+              ) : (
+                <ul className="divide-y divide-gray-100">
+                  {(alternatesList[item.id] || []).map((alt) => (
+                    <li key={alt.activity_id} className="flex items-center justify-between gap-3 px-3 py-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{alt.place_name}</p>
+                        <p className="text-xs text-gray-500">
+                          {alt.category?.replace(/_/g, ' ')}
+                          {alt.rating ? ` · ★ ${alt.rating}` : ''}
+                          {alt.estimated_cost_cents !== null ? ` · ${formatCost(alt.estimated_cost_cents)}` : ''}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => onSwap(item, alt)}
+                        className="flex-shrink-0 text-xs font-medium text-indigo-600 border border-indigo-200 hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition-colors"
+                      >
+                        Use this
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
 
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
             {item.rating !== null && (
@@ -450,6 +493,9 @@ export default function TripPage() {
   const [editMode, setEditMode] = useState(false)
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [alternatesItemId, setAlternatesItemId] = useState<string | null>(null)
+  const [alternates, setAlternates] = useState<Record<string, any[]>>({})
+  const [loadingAlternates, setLoadingAlternates] = useState(false)
 
   function handleNotesSaved(itemId: string, notes: string) {
     setTrip((prev) => {
@@ -487,6 +533,72 @@ export default function TripPage() {
       setConfirmDeleteId(null)
     }
   }
+
+  async function fetchAlternates(itemId: string) {
+    if (alternatesItemId === itemId) {
+      setAlternatesItemId(null)
+      return
+    }
+    setAlternatesItemId(itemId)
+    if (alternates[itemId]) return
+    setLoadingAlternates(true)
+    try {
+      const res = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items/${itemId}/alternates`
+      )
+      if (!res.ok) throw new Error('Failed to fetch alternates')
+      const data = await res.json()
+      setAlternates((prev) => ({ ...prev, [itemId]: data }))
+    } catch {
+      alert('Failed to load suggestions. Please try again.')
+      setAlternatesItemId(null)
+    } finally {
+      setLoadingAlternates(false)
+    }
+  }
+
+  async function handleSwap(oldItem: ItineraryItem, alternate: any) {
+    setSavingStatus('saving')
+    try {
+      // Delete the old item
+      const deleteRes = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items/${oldItem.id}`,
+        { method: 'DELETE' }
+      )
+      if (!deleteRes.ok) throw new Error('Failed to delete old item')
+
+      // Insert the new item in the same position
+      const addRes = await fetch(
+        `http://localhost:5050/api/v1/trips/${id}/items`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            place_id: alternate.place_id,
+            activity_id: alternate.activity_id,
+            day_number: oldItem.day_number,
+            item_order: oldItem.item_order,
+            scheduled_date: oldItem.scheduled_date,
+            source_type: 'user',
+          }),
+        }
+      )
+      if (!addRes.ok) throw new Error('Failed to add new item')
+
+      // Refetch the full trip so local state is accurate
+      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
+      const tripData = await tripRes.json()
+      setTrip(tripData)
+      setAlternatesItemId(null)
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to swap activity. Please try again.')
+    }
+  }
+
+
   useEffect(() => {
     if (!id) return
     async function loadTrip() {
@@ -634,6 +746,11 @@ export default function TripPage() {
                       onRequestDelete={setConfirmDeleteId}
                       onCancelDelete={() => setConfirmDeleteId(null)}
                       onConfirmDelete={handleDelete}
+                      alternatesItemId={alternatesItemId}
+                      alternatesList={alternates}
+                      loadingAlternates={loadingAlternates}
+                      onFetchAlternates={fetchAlternates}
+                      onSwap={handleSwap}
                     />
                   ))}
                 </ul>

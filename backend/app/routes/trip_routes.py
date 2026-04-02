@@ -67,26 +67,35 @@ def add_custom_item(trip_id):
     try:
         data = request.get_json()
 
-        name = data.get("custom_name", "").strip()
-        if not name:
-            return jsonify({"error": "custom_name is required"}), 400
-
         day_number = data.get("day_number")
         if not day_number:
             return jsonify({"error": "day_number is required"}), 400
 
-        existing = get_trip_itinerary_items(trip_id)
-        day_items = [i for i in existing if i["day_number"] == day_number]
-        next_order = max((i["item_order"] for i in day_items), default=0) + 1
+        place_id = data.get("place_id")
+        activity_id = data.get("activity_id")
+        custom_name = data.get("custom_name", "").strip()
+
+        # Must have either a place/activity pair or a custom name
+        if not place_id and not custom_name:
+            return jsonify({"error": "Either place_id/activity_id or custom_name is required"}), 400
+
+        # Use provided item_order for swaps, otherwise append to end of day
+        item_order = data.get("item_order")
+        if item_order is None:
+            existing = get_trip_itinerary_items(trip_id)
+            day_items = [i for i in existing if i["day_number"] == day_number]
+            item_order = max((i["item_order"] for i in day_items), default=0) + 1
 
         item = insert_trip_itinerary_item({
             "trip_id": trip_id,
             "day_number": day_number,
-            "item_order": next_order,
+            "item_order": item_order,
             "scheduled_date": data.get("scheduled_date"),
-            "source_type": "user",
+            "source_type": data.get("source_type", "user"),
             "item_status": "active",
-            "custom_name": name,
+            "place_id": place_id,
+            "activity_id": activity_id,
+            "custom_name": custom_name or None,
             "custom_address": data.get("custom_address"),
             "notes": data.get("notes"),
         })
