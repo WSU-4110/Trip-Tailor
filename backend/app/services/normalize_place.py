@@ -32,7 +32,7 @@ def _parse_us_formatted_address(formatted: Optional[str]) -> dict:
 
     if len(parts) >= 2:
         last = parts[-1].strip()
-        if last.upper() in {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"} or len(last) <= 3:
+        if re.match(r'^[A-Za-z\s]+$', last):
             country = _country_to_iso(last)
         else:
             country = "US"
