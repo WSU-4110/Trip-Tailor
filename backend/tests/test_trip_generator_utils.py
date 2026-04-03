@@ -41,7 +41,7 @@ def test_normalize_preferred_categories():
 
     result = _normalize_preferred_categories(payload)
 
-    assert result == ["bar", "museum"]
+    assert result == ["bar", "museum", "none"]
 
 
 def test_normalize_excluded_categories():

@@ -31,7 +31,11 @@ def _parse_us_formatted_address(formatted: Optional[str]) -> dict:
     country = None
 
     if len(parts) >= 2:
-        country = _country_to_iso(parts[-1])
+        last = parts[-1].strip()
+        if last.upper() in {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"} or len(last) <= 3:
+            country = _country_to_iso(last)
+        else:
+            country = "US"
 
     if len(parts) >= 3:
         state_zip = parts[-2]
