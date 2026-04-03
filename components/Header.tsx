@@ -8,10 +8,17 @@ export default function Header() {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
   
-  useEffect(() => { 
+  useEffect(() => {
+  const checkLogin = () => {
     const token = localStorage.getItem("access_token");
     setLoggedIn(!!token);
-  }, []);
+  };
+
+  checkLogin();
+  window.addEventListener("storage", checkLogin);
+
+  return () => window.removeEventListener("storage", checkLogin);
+}, []);
 
   function logout() { 
     localStorage.removeItem("access_token");

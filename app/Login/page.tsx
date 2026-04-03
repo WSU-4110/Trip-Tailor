@@ -39,7 +39,8 @@ const [success, setSuccess] = useState<string>("");
 
       // store token
       localStorage.setItem("access_token", data.access_token);
-        
+      
+      window.dispatchEvent(new Event("storage"));
 
       // show success message
       setSuccess("Login successful! Redirecting...");
@@ -47,7 +48,6 @@ const [success, setSuccess] = useState<string>("");
       // redirect after 1 second
       setTimeout(() => {
         router.push("/questionnaire");
-        window.location.reload();
       }, 1000);
       
 

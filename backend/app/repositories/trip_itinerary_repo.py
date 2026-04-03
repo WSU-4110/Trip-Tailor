@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from app.db import get_conn
 
@@ -16,9 +16,11 @@ def insert_trip_itinerary_item(item: dict[str, Any]) -> dict[str, Any]:
             source_type,
             selection_reason,
             item_status,
-            notes
+            notes,
+            custom_name,
+            custom_address
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *;
     """
     values = (
@@ -26,13 +28,15 @@ def insert_trip_itinerary_item(item: dict[str, Any]) -> dict[str, Any]:
         item["day_number"],
         item["item_order"],
         item.get("scheduled_date"),
-        item["place_id"],
-        item["activity_id"],
+        item.get("place_id"),
+        item.get("activity_id"),
         item.get("locked_by_user", False),
         item.get("source_type", "generated"),
         item.get("selection_reason"),
         item.get("item_status", "active"),
         item.get("notes"),
+        item.get("custom_name"),
+        item.get("custom_address"),
     )
 
     with get_conn() as conn:
@@ -45,19 +49,40 @@ def get_trip_itinerary_items(trip_id: str) -> list[dict[str, Any]]:
     sql = """
         SELECT
             tii.*,
-            p.name AS place_name,
+            COALESCE(p.name, tii.custom_name) AS place_name,
             p.city,
             p.region,
+            COALESCE(p.address_line1, tii.custom_address) AS address_line1,
+            p.latitude,
+            p.longitude,
+            p.website_url,
+            p.google_maps_url,
+            p.phone,
             a.title AS activity_title,
             a.category,
             a.activity_type,
+            a.description,
+            a.tags,
             a.rating,
+            a.review_count,
             a.estimated_cost_cents,
-            a.duration_minutes
+            a.duration_minutes,
+            a.effort_level,
+            a.indoor_outdoor,
+            a.family_friendly,
+            a.good_for_kids,
+            a.good_for_groups,
+            a.pet_friendly,
+            a.wheelchair_accessible,
+            a.reservations_required,
+            a.ticket_required,
+            a.noise_level,
+            a.price_level,
+            a.source_url
         FROM planner.trip_itinerary_items tii
-        JOIN data.places p
+        LEFT JOIN data.places p
             ON p.id = tii.place_id
-        JOIN data.activities a
+        LEFT JOIN data.activities a
             ON a.id = tii.activity_id
         WHERE tii.trip_id = %s
         ORDER BY tii.day_number, tii.item_order;
@@ -76,3 +101,54 @@ def delete_trip_itinerary_items(trip_id: str) -> None:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(sql, (trip_id,))
+
+def delete_trip_itinerary_item(item_id: str, trip_id: str) -> bool:
+    # Delete a single item. Returns True if a row was deleted.
+    sql = """
+        DELETE FROM planner.trip_itinerary_items
+        WHERE id = %s AND trip_id = %s;
+    """
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (item_id, trip_id))
+            return cur.rowcount > 0
+
+
+def update_trip_itinerary_item(item_id: str, trip_id: str, updates: dict[str, Any]) -> Optional[dict[str, Any]]:
+    #Update notes and/or custom_name/custom_address on an item.
+    sql = """
+        UPDATE planner.trip_itinerary_items
+        SET
+            notes = COALESCE(%s, notes),
+            custom_name = COALESCE(%s, custom_name),
+            custom_address = COALESCE(%s, custom_address),
+            updated_at = NOW()
+        WHERE id = %s AND trip_id = %s
+        RETURNING *;
+    """
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (
+                updates.get("notes"),
+                updates.get("custom_name"),
+                updates.get("custom_address"),
+                item_id,
+                trip_id,
+            ))
+            return cur.fetchone()
+
+
+def reorder_day_items(trip_id: str, day_number: int, ordered_item_ids: list[str]) -> None:
+    # Given an ordered list of item IDs for a day, update item_order for each.
+    # ordered_item_ids[0] gets item_order=1, [1] gets item_order=2, etc.
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            for idx, item_id in enumerate(ordered_item_ids):
+                cur.execute(
+                    """
+                    UPDATE planner.trip_itinerary_items
+                    SET item_order = %s, updated_at = NOW()
+                    WHERE id = %s AND trip_id = %s AND day_number = %s;
+                    """,
+                    (idx + 1, item_id, trip_id, day_number),
+                )
