@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import AuthModal from './AuthModal'
+import { useRouter } from "next/navigation";
 
 interface NavbarProps {
   activePage?: 'home' | 'trips' | 'generate'
@@ -13,6 +14,7 @@ export default function Navbar({ activePage }: NavbarProps) {
   const { user, logout } = useAuth()
   const [authOpen, setAuthOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const router = useRouter();
 
   const linkClass = (page: string) =>
     activePage === page
@@ -51,7 +53,10 @@ export default function Navbar({ activePage }: NavbarProps) {
               </div>
             ) : (
               <button
-                onClick={() => setAuthOpen(true)}
+                onClick={() => {
+                sessionStorage.setItem("redirect_after_login", window.location.pathname);
+                router.push("/Login");
+                }}
                 className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors font-medium"
               >
                 Sign In
@@ -93,7 +98,10 @@ export default function Navbar({ activePage }: NavbarProps) {
               </>
             ) : (
               <button
-                onClick={() => { setAuthOpen(true); setMenuOpen(false) }}
+                onClick={() => {
+                sessionStorage.setItem("redirect_after_login", window.location.pathname);
+                router.push("/Login");
+                }}
                 className="bg-primary-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
               >
                 Sign In
@@ -103,7 +111,6 @@ export default function Navbar({ activePage }: NavbarProps) {
         )}
       </nav>
 
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   )
 }
