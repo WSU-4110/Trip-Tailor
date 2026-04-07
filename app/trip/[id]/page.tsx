@@ -970,15 +970,15 @@ export default function TripPage() {
 
   if (notFound) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
         <div className="container mx-auto px-6 max-w-2xl text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Trip not found</h1>
-          <p className="text-gray-600 mb-6">This itinerary may have been removed or the link is invalid.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Trip not found</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">This itinerary may have been removed or the link is invalid.</p>
           <div className="flex gap-4 justify-center">
-            <Link href="/my-trips" className="text-primary-600 font-semibold hover:underline">
+            <Link href="/my-trips" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               My Trips
             </Link>
-            <Link href="/trips" className="text-primary-600 font-semibold hover:underline">
+            <Link href="/trips" className="text-primary-600 dark:text-primary-400 font-semibold hover:underline">
               Explore Trips
             </Link>
           </div>
@@ -989,11 +989,11 @@ export default function TripPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
         <div className="container mx-auto px-6 max-w-6xl space-y-4 animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3" />
-          <div className="h-4 bg-gray-200 rounded w-1/4" />
-          <div className="h-64 bg-gray-200 rounded-xl mt-6" />
+          <div className="h-8 bg-gray-200 dark:bg-slate-700 rounded w-1/3" />
+          <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded w-1/4" />
+          <div className="h-64 bg-gray-200 dark:bg-slate-700 rounded-xl mt-6" />
         </div>
       </main>
     )
@@ -1004,13 +1004,12 @@ export default function TripPage() {
   const dayNumbers = Array.from(new Set(trip.itinerary_items.map((i) => i.day_number))).sort((a, b) => a - b)
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
       <div className="container mx-auto px-6 max-w-6xl">
-
         <div className="mb-8">
           <Link
             href="/my-trips"
-            className="text-sm text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center gap-1 mb-3"
+            className="text-sm text-indigo-600 dark:text-primary-400 hover:text-indigo-800 dark:hover:text-primary-300 font-medium inline-flex items-center gap-1 mb-3"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1018,10 +1017,10 @@ export default function TripPage() {
             Back to My Trips
           </Link>
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">{trip.trip.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{trip.trip.title}</h1>
             <div className="flex items-center gap-3 flex-shrink-0 mt-1">
               {savingStatus === 'saving' && (
-                <span className="text-sm text-gray-400">Saving...</span>
+                <span className="text-sm text-gray-400 dark:text-gray-300">Saving...</span>
               )}
               {savingStatus === 'saved' && (
                 <span className="text-sm text-emerald-600">Saved ✓</span>
@@ -1030,8 +1029,8 @@ export default function TripPage() {
                 onClick={() => setEditMode(!editMode)}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                   editMode
-                    ? 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
-                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                    ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-900/60 text-amber-700 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-950/40'
+                    : 'bg-white dark:bg-slate-800 border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
               >
                 {editMode ? 'Done Editing' : 'Edit Itinerary'}
@@ -1051,7 +1050,7 @@ export default function TripPage() {
         </div>
 
         {editMode && (
-          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
+          <div className="mb-4 px-4 py-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60 rounded-xl text-sm text-amber-700 dark:text-amber-200">
             Edit mode — drag to reorder, or use the icons on each activity to swap, edit, or delete.
           </div>
         )}
@@ -1064,15 +1063,15 @@ export default function TripPage() {
             const dayDate = dayItems[0]?.scheduled_date
 
             return (
-              <section key={dayNumber} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="bg-indigo-600 px-6 py-4">
+              <section key={dayNumber} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700 overflow-hidden">
+                <div className="bg-indigo-600 dark:bg-primary-700 px-6 py-4">
                   <h2 className="text-lg font-bold text-white">Day {dayNumber}</h2>
                   {dayDate && (
                     <p className="text-indigo-200 text-sm">{formatDayDate(dayDate)}</p>
                   )}
                 </div>
 
-                <ul className="divide-y divide-gray-100">
+                <ul className="divide-y divide-gray-100 dark:divide-slate-700">
                   {dayItems.map((item, idx) => (
                     <ActivityCard
                       key={item.id}
@@ -1124,7 +1123,7 @@ export default function TripPage() {
                         setAddingToDayNumber(dayNumber)
                         setAddMode('choice')
                       }}
-                      className="w-full px-5 py-3 text-xs font-medium text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors flex items-center justify-center gap-1 border-t border-gray-100"
+                      className="w-full px-5 py-3 text-xs font-medium text-gray-400 hover:text-indigo-600 dark:hover:text-primary-300 hover:bg-indigo-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1 border-t border-gray-100 dark:border-slate-700"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1139,10 +1138,10 @@ export default function TripPage() {
         </div>
 
         <div className="mt-8 flex gap-3">
-          <Link href="/generate" className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+          <Link href="/generate" className="bg-indigo-600 dark:bg-primary-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 dark:hover:bg-primary-500 transition-colors">
             Plan another trip
           </Link>
-          <Link href="/my-trips" className="border border-gray-300 text-gray-700 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+          <Link href="/my-trips" className="border border-gray-300 dark:border-slate-600 text-gray-700 dark:text-gray-200 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
             All my trips
           </Link>
         </div>

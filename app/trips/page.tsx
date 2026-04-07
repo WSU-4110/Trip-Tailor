@@ -3,10 +3,10 @@ import { TRIP_PRESETS } from '@/lib/presets'
 
 export default function TripsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 py-12">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
       <div className="container mx-auto px-6 max-w-5xl">
-        <h1 className="text-4xl font-bold text-gray-900 mb-2">Explore Trips</h1>
-        <p className="text-gray-600 mb-10">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Explore Trips</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-10">
           Get inspired with these trip presets. Click one to view a sample itinerary.
         </p>
 
@@ -15,11 +15,11 @@ export default function TripsPage() {
             <Link
               key={preset.id}
               href={`/trip/${preset.id}`}
-              className="block bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-100 group"
+              className="block bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-100 dark:border-slate-700 group"
             >
-              <div className="h-40 bg-gradient-to-br from-primary-100 to-cyan-100 flex items-center justify-center">
+              <div className="h-40 bg-gradient-to-br from-primary-100 to-cyan-100 dark:from-primary-900/50 dark:to-slate-700 flex items-center justify-center">
                 <svg
-                  className="w-16 h-16 text-primary-300 group-hover:text-primary-400 transition-colors"
+                  className="w-16 h-16 text-primary-300 dark:text-primary-600 group-hover:text-primary-400 dark:group-hover:text-primary-500 transition-colors"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -33,11 +33,11 @@ export default function TripsPage() {
                 </svg>
               </div>
               <div className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                   {preset.title}
                 </h2>
-                <p className="text-gray-600 text-sm mb-3">{preset.description}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{preset.description}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {preset.destination} · {preset.duration}
                 </p>
               </div>
@@ -46,10 +46,10 @@ export default function TripsPage() {
         </div>
 
         <div className="mt-12 text-center">
-          <p className="text-gray-600 mb-4">Want a personalized itinerary instead?</p>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">Want a personalized itinerary instead?</p>
           <Link
             href="/generate"
-            className="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+            className="inline-block bg-primary-600 dark:bg-primary-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
           >
             Generate Itinerary
           </Link>

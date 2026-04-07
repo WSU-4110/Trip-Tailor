@@ -2,34 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #0f172a;
+  background: linear-gradient(to bottom, #e5f3ff, #ffffff);
 }
 
-/* Keep form fields readable: dark text on light background regardless of color-scheme */
+/* Form fields: light theme */
 input,
 textarea,
 select {
   color: #111827;
   background-color: #fff;
+}
+
+html.dark body {
+  color: #e5e7eb;
+  background: radial-gradient(circle at top, #0f172a, #020617);
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color: #e5e7eb;
+  background-color: #1e293b;
+  border-color: #334155;
 }
