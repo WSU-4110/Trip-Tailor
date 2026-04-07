@@ -230,7 +230,7 @@ export default function TripTailorQuestionnaire() {
   
     return (
   <div className="min-h-screen bg-white flex p-6 gap-10"
-  style={{ backgroundImage: "url('/londongbridge.jpg')" }}
+  style={{ backgroundImage: "url('/bridge.png')" }}
   >
 
     {/* Progress Sidebar */}
