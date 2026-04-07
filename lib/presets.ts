@@ -7,6 +7,7 @@ export interface TripPreset {
   description: string
   destination: string
   duration: string
+  imageUrl: string
 }
 
 export const TRIP_PRESETS: TripPreset[] = [
@@ -17,6 +18,8 @@ export const TRIP_PRESETS: TripPreset[] = [
     description: 'Two days of art, cafes, and iconic landmarks in the City of Light.',
     destination: 'Paris, France',
     duration: '2 days',
+    imageUrl:
+      'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80',
   },
   {
     id: 'preset-beach',
@@ -25,6 +28,8 @@ export const TRIP_PRESETS: TripPreset[] = [
     description: 'Sun, sand, and relaxation. A classic coastal escape.',
     destination: 'Tropical Beach',
     duration: '5 days',
+    imageUrl:
+      'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1600&q=80',
   },
   {
     id: 'preset-city',
@@ -33,6 +38,8 @@ export const TRIP_PRESETS: TripPreset[] = [
     description: 'Museums, street food, and urban adventures in a major city.',
     destination: 'New York City',
     duration: '4 days',
+    imageUrl:
+      'https://images.unsplash.com/photo-1546436836-07a91091f160?auto=format&fit=crop&w=1600&q=80',
   },
   {
     id: 'preset-mountain',
@@ -41,6 +48,8 @@ export const TRIP_PRESETS: TripPreset[] = [
     description: 'Hiking, fresh air, and stunning mountain views.',
     destination: 'Rocky Mountains',
     duration: '3 days',
+    imageUrl:
+      'https://images.unsplash.com/photo-1445308394109-4ec2920981b1?auto=format&fit=crop&w=1600&q=80',
   },
 ]
 
