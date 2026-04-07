@@ -46,9 +46,14 @@ const [success, setSuccess] = useState<string>("");
       setSuccess("Login successful! Redirecting...");
 
       // redirect after 1 second
-      setTimeout(() => {
-        router.push("/generate");
-      }, 1000);
+setTimeout(() => {
+  const redirectPath =
+    sessionStorage.getItem("redirect_after_login") || "/generate";
+
+  sessionStorage.removeItem("redirect_after_login");
+
+  window.location.replace(redirectPath);
+}, 1000);
       
 
     } catch (err) {

@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../contexts/AuthContext' 
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 interface AuthModalProps {
   isOpen: boolean
@@ -18,8 +20,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // Reset form when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setName('')
@@ -32,28 +35,56 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   if (!isOpen) return null
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      if (tab === 'login') {
-        await login(email, password)
-      } else {
-        if (!name.trim()) {
-          setError('Please enter your name.')
-          setLoading(false)
-          return
-        }
-        await register(name, email, password)
-      }
-      onClose()
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  useEffect(() => {
+  if (isOpen) {
+    sessionStorage.setItem("redirect_after_login", pathname);
   }
+}, [isOpen, pathname]);
+
+
+
+  async function handleSubmit(e: React.FormEvent) {
+  e.preventDefault()
+  setError('')
+  setLoading(true)
+
+  try {
+    if (tab === 'login') {
+      await login(email, password)
+
+
+      
+      const redirectPath =
+  sessionStorage.getItem("redirect_after_login") || "/generate";
+
+sessionStorage.removeItem("redirect_after_login");
+
+onClose();
+
+window.location.replace(redirectPath);
+
+return;
+    } else {
+      if (!name.trim()) {
+        setError('Please enter your name.')
+        setLoading(false)
+        return
+      }
+
+      await register(name, email, password)
+      onClose()
+    }
+
+  } catch (err: unknown) {
+    setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+  } finally {
+    setLoading(false)
+  }
+}
+
+
+
+
 
   return (
     <div

@@ -27,9 +27,6 @@ export default function Header() {
     window.location.reload();
   }
   
-  
-  
-  
   return (
     <nav className="container mx-auto px-6 py-6">
       <div className="flex items-center justify-between">
@@ -56,16 +53,16 @@ export default function Header() {
             My Trips
           </Link>
           
-
-
-
           {!loggedIn ? (
-            <Link
-              href="/Login"
-              className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Sign In
-            </Link>
+            <button
+  onClick={() => {
+    sessionStorage.setItem("redirect_after_login", window.location.pathname);
+    router.push("/Login");
+  }}
+  className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+>
+  Sign In
+</button>
           ) : (
             <button
               onClick={logout}
