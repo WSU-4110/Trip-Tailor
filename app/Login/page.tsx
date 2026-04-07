@@ -47,7 +47,7 @@ const [success, setSuccess] = useState<string>("");
 
       // redirect after 1 second
       setTimeout(() => {
-        router.push("/questionnaire");
+        router.push("/generate");
       }, 1000);
       
 
