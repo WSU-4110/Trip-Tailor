@@ -1,8 +1,18 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import {
+  CommandInvoker,
+  DeleteItemCommand,
+  EditItemCommand,
+  AddCustomItemCommand,
+  AddRecommendedItemCommand,
+  SwapItemCommand,
+} from '@/lib/commands/itinerary-commands'
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:5050'
 
 type ItineraryItem = {
   id: string
@@ -249,7 +259,7 @@ function NotesEditor({
   async function save() {
     setSaving(true)
     try {
-      await fetch(`http://localhost:5050/api/v1/trips/${tripId}/items/${item.id}`, {
+      await fetch(`${API_BASE}/api/v1/trips/${tripId}/items/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: draft }),
@@ -712,6 +722,9 @@ export default function TripPage() {
   const [loadingAddAlternates, setLoadingAddAlternates] = useState(false)
   const [editItemId, setEditItemId] = useState<string | null>(null)
 
+  // Command pattern: single invoker instance for the lifetime of this page
+  const invoker = useRef(new CommandInvoker())
+
   function handleNotesSaved(itemId: string, notes: string) {
     setTrip((prev) => {
       if (!prev) return prev
@@ -727,18 +740,16 @@ export default function TripPage() {
   async function handleDelete(itemId: string) {
     setSavingStatus('saving')
     try {
-      const res = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items/${itemId}`,
-        { method: 'DELETE' }
-      )
-      if (!res.ok) throw new Error('Failed to delete')
-      setTrip((prev) => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          itinerary_items: prev.itinerary_items.filter((i) => i.id !== itemId),
-        }
+      const command = new DeleteItemCommand(id, itemId, (deletedId) => {
+        setTrip((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            itinerary_items: prev.itinerary_items.filter((i) => i.id !== deletedId),
+          }
+        })
       })
+      await invoker.current.execute(command)
       setSavingStatus('saved')
       setTimeout(() => setSavingStatus('idle'), 2000)
     } catch {
@@ -759,7 +770,7 @@ export default function TripPage() {
     setLoadingAlternates(true)
     try {
       const res = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items/${itemId}/alternates`
+        `${API_BASE}/api/v1/trips/${id}/items/${itemId}/alternates`
       )
       if (!res.ok) throw new Error('Failed to fetch alternates')
       const data = await res.json()
@@ -775,36 +786,13 @@ export default function TripPage() {
   async function handleSwap(oldItem: ItineraryItem, alternate: any) {
     setSavingStatus('saving')
     try {
-      // Delete the old item
-      const deleteRes = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items/${oldItem.id}`,
-        { method: 'DELETE' }
-      )
-      if (!deleteRes.ok) throw new Error('Failed to delete old item')
-
-      // Insert the new item in the same position
-      const addRes = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            place_id: alternate.place_id,
-            activity_id: alternate.activity_id,
-            day_number: oldItem.day_number,
-            item_order: oldItem.item_order,
-            scheduled_date: oldItem.scheduled_date,
-            source_type: 'user',
-          }),
-        }
-      )
-      if (!addRes.ok) throw new Error('Failed to add new item')
-
-      // Refetch the full trip so local state is accurate
-      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
-      const tripData = await tripRes.json()
-      setTrip(tripData)
-      setAlternatesItemId(null)
+      const command = new SwapItemCommand(id, oldItem, alternate, async () => {
+        const tripRes = await fetch(`${API_BASE}/api/v1/trips/${id}`)
+        const tripData = await tripRes.json()
+        setTrip(tripData)
+        setAlternatesItemId(null)
+      })
+      await invoker.current.execute(command)
       setSavingStatus('saved')
       setTimeout(() => setSavingStatus('idle'), 2000)
     } catch {
@@ -816,12 +804,11 @@ export default function TripPage() {
   async function fetchAddAlternates(dayNumber: number) {
     setLoadingAddAlternates(true)
     setAddAlternates([])
-    // Use any item id from the trip to hit the alternates endpoint
     const anyItemId = trip?.itinerary_items[0]?.id
     if (!anyItemId) return
     try {
       const res = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items/${anyItemId}/alternates`
+        `${API_BASE}/api/v1/trips/${id}/items/${anyItemId}/alternates`
       )
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
@@ -836,26 +823,15 @@ export default function TripPage() {
   async function handleAddRecommended(alternate: any, dayNumber: number) {
     setSavingStatus('saving')
     try {
-      const res = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            place_id: alternate.place_id,
-            activity_id: alternate.activity_id,
-            day_number: dayNumber,
-            source_type: 'user',
-          }),
-        }
-      )
-      if (!res.ok) throw new Error('Failed to add')
-      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
-      const tripData = await tripRes.json()
-      setTrip(tripData)
-      setAddingToDayNumber(null)
-      setAddMode(null)
-      setAddAlternates([])
+      const command = new AddRecommendedItemCommand(id, dayNumber, alternate, async () => {
+        const tripRes = await fetch(`${API_BASE}/api/v1/trips/${id}`)
+        const tripData = await tripRes.json()
+        setTrip(tripData)
+        setAddingToDayNumber(null)
+        setAddMode(null)
+        setAddAlternates([])
+      })
+      await invoker.current.execute(command)
       setSavingStatus('saved')
       setTimeout(() => setSavingStatus('idle'), 2000)
     } catch {
@@ -867,26 +843,19 @@ export default function TripPage() {
   async function handleAddCustom(dayNumber: number, name: string, address: string, notes: string) {
     setSavingStatus('saving')
     try {
-      const res = await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            custom_name: name,
-            custom_address: address || null,
-            notes: notes || null,
-            day_number: dayNumber,
-            source_type: 'user',
-          }),
+      const command = new AddCustomItemCommand(
+        id,
+        dayNumber,
+        { custom_name: name, custom_address: address || null, notes: notes || null },
+        async () => {
+          const tripRes = await fetch(`${API_BASE}/api/v1/trips/${id}`)
+          const tripData = await tripRes.json()
+          setTrip(tripData)
+          setAddingToDayNumber(null)
+          setAddMode(null)
         }
       )
-      if (!res.ok) throw new Error('Failed to add')
-      const tripRes = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
-      const tripData = await tripRes.json()
-      setTrip(tripData)
-      setAddingToDayNumber(null)
-      setAddMode(null)
+      await invoker.current.execute(command)
       setSavingStatus('saved')
       setTimeout(() => setSavingStatus('idle'), 2000)
     } catch {
@@ -898,35 +867,31 @@ export default function TripPage() {
   async function handleEditSave(item: ItineraryItem, name: string, address: string, notes: string) {
     setSavingStatus('saving')
     try {
-      await fetch(
-        `http://localhost:5050/api/v1/trips/${id}/items/${item.id}`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            custom_name: item.source_type === 'user' ? name : undefined,
-            custom_address: item.source_type === 'user' ? address : undefined,
-            notes: notes,
-          }),
-        }
-      )
-      setTrip((prev) => {
-        if (!prev) return prev
-        return {
-          ...prev,
-          itinerary_items: prev.itinerary_items.map((i) =>
-            i.id === item.id
-              ? {
-                  ...i,
-                  notes: notes,
-                  custom_name: item.source_type === 'user' ? name : i.custom_name,
-                  custom_address: item.source_type === 'user' ? address : i.custom_address,
-                  place_name: item.source_type === 'user' ? name : i.place_name,
-                }
-              : i
-          ),
-        }
+      const patch = {
+        custom_name: item.source_type === 'user' ? name : undefined,
+        custom_address: item.source_type === 'user' ? address : undefined,
+        notes: notes,
+      }
+      const command = new EditItemCommand(id, item.id, patch, (itemId, savedPatch) => {
+        setTrip((prev) => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            itinerary_items: prev.itinerary_items.map((i) =>
+              i.id === itemId
+                ? {
+                    ...i,
+                    notes: savedPatch.notes ?? i.notes,
+                    custom_name: savedPatch.custom_name ?? i.custom_name,
+                    custom_address: savedPatch.custom_address ?? i.custom_address,
+                    place_name: item.source_type === 'user' ? (savedPatch.custom_name ?? i.place_name) : i.place_name,
+                  }
+                : i
+            ),
+          }
+        })
       })
+      await invoker.current.execute(command)
       setEditItemId(null)
       setSavingStatus('saved')
       setTimeout(() => setSavingStatus('idle'), 2000)
@@ -945,7 +910,7 @@ export default function TripPage() {
         setLoading(true)
         setNotFound(false)
 
-        const res = await fetch(`http://localhost:5050/api/v1/trips/${id}`)
+        const res = await fetch(`${API_BASE}/api/v1/trips/${id}`)
 
         if (res.status === 404){
           setNotFound(true)
