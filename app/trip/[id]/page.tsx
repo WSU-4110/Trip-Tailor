@@ -4,6 +4,16 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
+import {
+  DndContext, DragEndEvent, DragStartEvent, DragOverlay, PointerSensor, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter,
+} from '@dnd-kit/core'
+import {
+  SortableContext, useSortable, verticalListSortingStrategy, arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
+
+
 type ItineraryItem = {
   id: string
   day_number: number
@@ -447,6 +457,48 @@ function AddActivityPanel({
   return null
 }
 
+function SortableActivityCard(props: React.ComponentProps<typeof ActivityCard> & { editMode: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: props.item.id, disabled: !props.editMode })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 9999 : undefined,
+    position: isDragging ? 'relative' as const : undefined,
+  }
+
+  return (
+    <li ref={setNodeRef} style={style} className="relative">
+      {props.editMode && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute left-2 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-1 text-gray-300 hover:text-gray-500 z-10"
+          title="Drag to reorder"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <circle cx="9" cy="5" r="1.5" />
+            <circle cx="15" cy="5" r="1.5" />
+            <circle cx="9" cy="12" r="1.5" />
+            <circle cx="15" cy="12" r="1.5" />
+            <circle cx="9" cy="19" r="1.5" />
+            <circle cx="15" cy="19" r="1.5" />
+          </svg>
+        </div>
+      )}
+      <ActivityCard {...props} />
+    </li>
+  )
+}
+
 function ActivityCard({
   item,
   index,
@@ -501,7 +553,7 @@ function ActivityCard({
     item.wheelchair_accessible !== null
 
   return (
-    <li className="px-5 py-4">
+    <div className="px-5 py-4">
       <div className="flex gap-3">
         <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center mt-0.5">
           {index + 1}
@@ -690,7 +742,7 @@ function ActivityCard({
           )}
         </div>
       </div>
-    </li>
+    </div>
   )
 }
 
@@ -711,6 +763,15 @@ export default function TripPage() {
   const [addAlternates, setAddAlternates] = useState<any[]>([])
   const [loadingAddAlternates, setLoadingAddAlternates] = useState(false)
   const [editItemId, setEditItemId] = useState<string | null>(null)
+  const [activeItem, setActiveItem] = useState<ItineraryItem | null>(null)
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: { distance: 10 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 250, tolerance: 5 },
+    })
+  )
 
   function handleNotesSaved(itemId: string, notes: string) {
     setTrip((prev) => {
@@ -936,7 +997,83 @@ export default function TripPage() {
     }
   }
 
+  function handleDragStart(event: DragStartEvent) {
+    const item = trip?.itinerary_items.find((i) => i.id === event.active.id)
+    setActiveItem(item ?? null)
+  }
 
+  async function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id || !trip) return
+
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    const activeItem = trip.itinerary_items.find((i) => i.id === activeId)
+    const overItem = trip.itinerary_items.find((i) => i.id === overId)
+    if (!activeItem || !overItem) return
+
+    const sourceDayNumber = activeItem.day_number
+    const targetDayNumber = overItem.day_number
+
+    // Build new items array with updated day_number and item_order
+    const updatedItems = [...trip.itinerary_items]
+    const activeIndex = updatedItems.findIndex((i) => i.id === activeId)
+    const overIndex = updatedItems.findIndex((i) => i.id === overId)
+
+    // Move the item
+    const moved = arrayMove(updatedItems, activeIndex, overIndex)
+
+    // Update day_number for the dragged item if it moved days
+    const finalItems = moved.map((item) => {
+      if (item.id === activeId) {
+        return { ...item, day_number: targetDayNumber }
+      }
+      return item
+    })
+
+    // Recalculate item_order per day
+    const dayNumbers = Array.from(new Set(finalItems.map((i) => i.day_number)))
+    const reordered = finalItems.map((item) => {
+      const dayItems = finalItems
+        .filter((i) => i.day_number === item.day_number)
+      const order = dayItems.findIndex((i) => i.id === item.id) + 1
+      return { ...item, item_order: order }
+    })
+
+    // Update local state immediately
+    setTrip((prev) => prev ? { ...prev, itinerary_items: reordered } : prev)
+
+    const crossDay = sourceDayNumber !== targetDayNumber
+    const affectedDays = crossDay
+      ? [sourceDayNumber, targetDayNumber]
+      : [sourceDayNumber]
+
+    setSavingStatus('saving')
+    try {
+      const res = await fetch(`http://localhost:5050/api/v1/trips/${id}/items/reorder`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          days: affectedDays.map((dayNum) => ({
+            day_number: dayNum,
+            ordered_item_ids: reordered
+              .filter((i) => i.day_number === dayNum)
+              .sort((a, b) => a.item_order - b.item_order)
+              .map((i) => i.id),
+          })),
+        }),
+      })
+      if (!res.ok) throw new Error('Failed to reorder')
+      setSavingStatus('saved')
+      setTimeout(() => setSavingStatus('idle'), 2000)
+    } catch {
+      setSavingStatus('idle')
+      alert('Failed to save new order. Please try again.')
+    } finally {
+      setActiveItem(null)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -1056,6 +1193,16 @@ export default function TripPage() {
           </div>
         )}
 
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+        <SortableContext
+          items={trip.itinerary_items.map((i) => i.id)}
+          strategy={verticalListSortingStrategy}
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {dayNumbers.map((dayNumber) => {
             const dayItems = trip.itinerary_items
@@ -1064,7 +1211,7 @@ export default function TripPage() {
             const dayDate = dayItems[0]?.scheduled_date
 
             return (
-              <section key={dayNumber} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+              <section key={dayNumber} className="bg-white rounded-2xl shadow-sm border border-gray-100">
                 <div className="bg-indigo-600 px-6 py-4">
                   <h2 className="text-lg font-bold text-white">Day {dayNumber}</h2>
                   {dayDate && (
@@ -1074,7 +1221,7 @@ export default function TripPage() {
 
                 <ul className="divide-y divide-gray-100">
                   {dayItems.map((item, idx) => (
-                    <ActivityCard
+                    <SortableActivityCard
                       key={item.id}
                       item={item}
                       index={idx}
@@ -1137,6 +1284,18 @@ export default function TripPage() {
             )
           })}
         </div>
+        </SortableContext>
+        <DragOverlay>
+          {activeItem ? (
+            <div className="bg-white rounded-xl shadow-2xl border border-indigo-200 px-5 py-4 opacity-95">
+              <p className="font-semibold text-gray-900 text-sm">{activeItem.place_name}</p>
+              {activeItem.category && (
+                <p className="text-xs text-gray-500 mt-0.5">{activeItem.category.replace(/_/g, ' ')}</p>
+              )}
+            </div>
+          ) : null}
+        </DragOverlay>
+        </DndContext>
 
         <div className="mt-8 flex gap-3">
           <Link href="/generate" className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
