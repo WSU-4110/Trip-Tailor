@@ -1,4 +1,5 @@
 "use client";
+import bridgeImg from "./biggieben.png";
 //this page is used after the generation page so user can give the database variable to use to generate trips
 //the variable is such as interests, energy level
 //disability accomodation //age // indoor/outdoorness
@@ -229,12 +230,18 @@ export default function TripTailorQuestionnaire() {
 
   
     return (
-  <div className="min-h-screen bg-white flex p-6 gap-10"
-  style={{ backgroundImage: "url('/bridge.png')" }}
-  >
+  <div
+  className="min-h-screen bg-white flex p-6 gap-10"
+  style={{
+    backgroundImage: `url(${bridgeImg.src})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
 
     {/* Progress Sidebar */}
-    <div className="w-1/3">
+    <div className="w-1/6 -ml-6 pl-8 bg-white rounded-lg width-max">
       <h2 className="text-xl font-bold mb-4 text-black-900 dark:text-black">Progress</h2>
 
       {/* Progress Bar */}
@@ -275,13 +282,14 @@ export default function TripTailorQuestionnaire() {
     </div>
 
     {/* Question Area */}
-  <div className="flex-1 flex flex-col items-center justify-center text-black dark:text-black">
+  <div className="flex-1 flex flex-col items-center justify-center text-black dark:text-black ">
 
   {current >= questions.length ? (
-
-    /* SUMMARY SCREEN */
-    <>
-      <h1 className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-blue-700 dark:text-black">
+    <div className="bg-white p-8 rounded-lg shadow-none w-full max-w-lg">
+    
+    
+    
+      <h1 className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-white">
         Trip Summary
       </h1>
       {isSubmitting && (
@@ -320,7 +328,7 @@ export default function TripTailorQuestionnaire() {
             setSubmitError(null);
           }}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-green-600 dark:bg-green-700 text-blackrounded-lg disabled:opacity-50"
+          className="px-6 py-3 bg-green-600 dark:bg-green-700 text-white-lg disabled:opacity-50"
         >
           Restart Questionnaire
         </button>
@@ -328,17 +336,18 @@ export default function TripTailorQuestionnaire() {
         <button
           onClick={() => router.push("/")}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-black-800 dark:bg-slate-700 text-black rounded-lg disabled:opacity-50"
+          className="px-6 py-3 bg-black-800 dark:bg-slate-700 text-white rounded-lg disabled:opacity-50"
         >
           Return to Home Page
         </button>
       </div>
-    </>
-
+  
+        </div>
   ) : (
 
     /*  QUESTION SCREEN */
     <>
+    <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
       <h1 className="text-2xl font-bold mb-6 text-black-900 dark:text-black">
         Question {current + 1}
       </h1>
@@ -384,7 +393,7 @@ export default function TripTailorQuestionnaire() {
   ))
 
 )}
-
+</div>
 </div>  
     </>
   )}
