@@ -33,3 +33,21 @@ select {
   color: #111827;
   background-color: #fff;
 }
+
+/* styling for the export itinerary button */
+@media print { 
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .bg-indigo-600 {
+    background-color: #4f46e5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

@@ -1156,12 +1156,20 @@ export default function TripPage() {
           </Link>
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-3xl font-bold text-gray-900">{trip.trip.title}</h1>
-            <div className="flex items-center gap-3 flex-shrink-0 mt-1">
+            <div className="flex items-center gap-3 flex-shrink-0 mt-1 no-print">
               {savingStatus === 'saving' && (
                 <span className="text-sm text-gray-400">Saving...</span>
               )}
               {savingStatus === 'saved' && (
                 <span className="text-sm text-emerald-600">Saved ✓</span>
+              )}
+              {!editMode && (
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-1.5 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Export PDF
+                </button>
               )}
               <button
                 onClick={() => setEditMode(!editMode)}
@@ -1297,7 +1305,7 @@ export default function TripPage() {
         </DragOverlay>
         </DndContext>
 
-        <div className="mt-8 flex gap-3">
+        <div className="mt-8 flex gap-3 no-print">
           <Link href="/generate" className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
             Plan another trip
           </Link>
