@@ -5,7 +5,7 @@ from app.services.trip_generator import generate_trip_from_preferences
 
 from app.repositories.trips_repo import get_full_trip, list_trips
 from app.repositories.trip_itinerary_repo import (insert_trip_itinerary_item, delete_trip_itinerary_item,
-    update_trip_itinerary_item, reorder_day_items, get_trip_itinerary_items,)
+    update_trip_itinerary_item, reorder_day_items, reorder_multiple_days, get_trip_itinerary_items,)
 
 from app.repositories.recommendations_repo import get_alternate_candidates
 
@@ -137,16 +137,24 @@ def update_item(trip_id, item_id):
 def reorder_items(trip_id):
     try:
         data = request.get_json()
-        day_number = data.get("day_number")
-        ordered_ids = data.get("ordered_item_ids", [])
+        # Support both single day and multiple days
+        # Multi-day format: { "days": [{"day_number": 1, "ordered_item_ids": [...]}, ...] }
+        # Single day format: { "day_number": 1, "ordered_item_ids": [...] }
+        days = data.get("days")
+        if days:
+            reorder_multiple_days(trip_id, days)
+        else:
+            day_number = data.get("day_number")
+            ordered_ids = data.get("ordered_item_ids", [])
+            if not day_number or not ordered_ids:
+                return jsonify({"error": "day_number and ordered_item_ids are required"}), 400
+            reorder_day_items(trip_id, day_number, ordered_ids)
 
-        if not day_number or not ordered_ids:
-            return jsonify({"error": "day_number and ordered_item_ids are required"}), 400
-
-        reorder_day_items(trip_id, day_number, ordered_ids)
         return jsonify({"reordered": True}), 200
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     
 

@@ -1,4 +1,5 @@
 "use client";
+import bridgeImg from "./biggieben.png";
 //this page is used after the generation page so user can give the database variable to use to generate trips
 //the variable is such as interests, energy level
 //disability accomodation //age // indoor/outdoorness
@@ -229,13 +230,19 @@ export default function TripTailorQuestionnaire() {
 
   
     return (
-  <div className="min-h-screen bg-white flex p-6 gap-10"
-  style={{ backgroundImage: "url('/bridge.png')" }}
-  >
+  <div
+  className="min-h-screen bg-white flex p-6 gap-10"
+  style={{
+    backgroundImage: `url(${bridgeImg.src})`,
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+  }}
+>
 
     {/* Progress Sidebar */}
-    <div className="w-1/3">
-      <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Progress</h2>
+    <div className="w-1/6 -ml-6 pl-8 bg-white rounded-lg width-max">
+      <h2 className="text-xl font-bold mb-4 text-black-900 dark:text-black">Progress</h2>
 
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-4 mb-6">
@@ -247,12 +254,12 @@ export default function TripTailorQuestionnaire() {
 
       {questions.map((_, index) => {
         let statusIcon = "•";
-        let textColor = "text-gray-400 dark:text-gray-500";
+        let textColor = "text-black-400 ";
 
         const answered=answers.find(a=>a.questionIndex===index)
         if (answered) {
           statusIcon = "✓";
-          textColor = "text-green-600 dark:text-green-500";
+          textColor = "text-green-600 dark:text-blue-500";
         } else if (index === current) {
           statusIcon = "➤";
           textColor = "text-blue-600 dark:text-blue-400";
@@ -261,11 +268,11 @@ export default function TripTailorQuestionnaire() {
         return (
           <div key={index} className="mb-3">
             <p className={`font-semibold ${textColor}`}>
-              {statusIcon} Step {index + 1}
+              {statusIcon} Answer {index + 1}
             </p>
 
             {answered && (
-              <p className="ml-6 text-sm text-gray-600 dark:text-gray-400">
+              <p className="ml-6 text-black">
                 Answer: {answered.value}
               </p>
             )}
@@ -275,23 +282,24 @@ export default function TripTailorQuestionnaire() {
     </div>
 
     {/* Question Area */}
-  <div className="flex-1 flex flex-col items-center justify-center text-black dark:text-white">
+  <div className="flex-1 flex flex-col items-center justify-center text-black dark:text-black ">
 
   {current >= questions.length ? (
-
-    /* SUMMARY SCREEN */
-    <>
-      <h1 className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-blue-700 dark:text-white">
+    <div className="bg-white p-8 rounded-lg shadow-none w-full max-w-lg">
+    
+    
+    
+      <h1 className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-white">
         Trip Summary
       </h1>
       {isSubmitting && (
-        <div className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-blue-700 dark:text-white">
+        <div className="mb-4 rounded-lg border border-blue-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800 px-4 py-3 text-blue-700 dark:text-black">
           Generating your itinerary and saving your trip...
         </div>
       )}
 
       {answers.sort((a,b)=>a.questionIndex-b.questionIndex).map((ans)=>(
-        <p key={ans.questionIndex} className="text-gray-700 dark:text-gray-200">
+        <p key={ans.questionIndex} className="text-black-700 dark:text-black-200">
           <span className="font-semibold">Q{ans.questionIndex + 1}:</span> {ans.value}
         </p>
       ))}
@@ -300,7 +308,7 @@ export default function TripTailorQuestionnaire() {
         <button
           onClick={handleGenerateTrip}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? "Generating trip your..." : "Generate Trip"}
         </button>
@@ -320,7 +328,7 @@ export default function TripTailorQuestionnaire() {
             setSubmitError(null);
           }}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-green-600 dark:bg-green-700 text-white rounded-lg disabled:opacity-50"
+          className="px-6 py-3 bg-green-600 dark:bg-green-700 text-white-lg disabled:opacity-50"
         >
           Restart Questionnaire
         </button>
@@ -328,22 +336,23 @@ export default function TripTailorQuestionnaire() {
         <button
           onClick={() => router.push("/")}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-gray-800 dark:bg-slate-700 text-white rounded-lg disabled:opacity-50"
+          className="px-6 py-3 bg-black-800 dark:bg-slate-700 text-white rounded-lg disabled:opacity-50"
         >
           Return to Home Page
         </button>
       </div>
-    </>
-
+  
+        </div>
   ) : (
 
     /*  QUESTION SCREEN */
     <>
-      <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+    <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+      <h1 className="text-2xl font-bold mb-6 text-black-900 dark:text-black">
         Question {current + 1}
       </h1>
 
-      <p className="mb-6 text-lg text-gray-900 dark:text-gray-200">
+      <p className="mb-6 text-lg text-black-900 dark:text-black-200">
         {questions[current].text}
       </p>
 
@@ -353,7 +362,7 @@ export default function TripTailorQuestionnaire() {
 
   <>
     {questions[current].options.map((option) => (
-      <label key={option} className="flex items-center gap-2 text-gray-900 dark:text-gray-200">
+      <label key={option} className="flex items-center gap-2 text-black-900 dark:text-black-200">
         <input
           type="checkbox"
           checked={multiAnswers.includes(option)}
@@ -365,7 +374,7 @@ export default function TripTailorQuestionnaire() {
 
     <button
       onClick={submitMultiAnswers}
-      className="mt-4 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-white rounded-lg"
+      className="mt-4 px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-black rounded-lg"
     >
       Continue
     </button>
@@ -377,14 +386,14 @@ export default function TripTailorQuestionnaire() {
     <button
       key={option}
       onClick={() => handleAnswer(option)}
-      className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-white rounded-lg"
+      className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-black dark:text-black rounded-lg"
     >
       {option}
     </button>
   ))
 
 )}
-
+</div>
 </div>  
     </>
   )}

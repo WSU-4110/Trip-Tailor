@@ -122,6 +122,7 @@ def update_trip_itinerary_item(item_id: str, trip_id: str, updates: dict[str, An
             notes = COALESCE(%s, notes),
             custom_name = COALESCE(%s, custom_name),
             custom_address = COALESCE(%s, custom_address),
+            day_number = COALESCE(%s, day_number),
             updated_at = NOW()
         WHERE id = %s AND trip_id = %s
         RETURNING *;
@@ -132,6 +133,7 @@ def update_trip_itinerary_item(item_id: str, trip_id: str, updates: dict[str, An
                 updates.get("notes"),
                 updates.get("custom_name"),
                 updates.get("custom_address"),
+                updates.get("day_number"),
                 item_id,
                 trip_id,
             ))
@@ -139,16 +141,38 @@ def update_trip_itinerary_item(item_id: str, trip_id: str, updates: dict[str, An
 
 
 def reorder_day_items(trip_id: str, day_number: int, ordered_item_ids: list[str]) -> None:
-    # Given an ordered list of item IDs for a day, update item_order for each.
-    # ordered_item_ids[0] gets item_order=1, [1] gets item_order=2, etc.
     with get_conn() as conn:
         with conn.cursor() as cur:
+            cur.execute('SET CONSTRAINTS "planner"."uq_trip_day_order" DEFERRED;')
             for idx, item_id in enumerate(ordered_item_ids):
                 cur.execute(
                     """
                     UPDATE planner.trip_itinerary_items
-                    SET item_order = %s, updated_at = NOW()
-                    WHERE id = %s AND trip_id = %s AND day_number = %s;
+                    SET item_order = %s, day_number = %s, updated_at = NOW()
+                    WHERE id = %s AND trip_id = %s;
                     """,
-                    (idx + 1, item_id, trip_id, day_number),
+                    (idx + 1, day_number, item_id, trip_id),
                 )
+        conn.commit()
+
+def reorder_multiple_days(trip_id: str, days: list[dict]) -> None:
+    """
+    Reorder items across multiple days in a single transaction.
+    days format: [{"day_number": 1, "ordered_item_ids": [...]}, ...]
+    """
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute('SET CONSTRAINTS "planner"."uq_trip_day_order" DEFERRED;')
+            for day in days:
+                day_number = day["day_number"]
+                ordered_item_ids = day["ordered_item_ids"]
+                for idx, item_id in enumerate(ordered_item_ids):
+                    cur.execute(
+                        """
+                        UPDATE planner.trip_itinerary_items
+                        SET item_order = %s, day_number = %s, updated_at = NOW()
+                        WHERE id = %s AND trip_id = %s;
+                        """,
+                        (idx + 1, day_number, item_id, trip_id),
+                    )
+        conn.commit()

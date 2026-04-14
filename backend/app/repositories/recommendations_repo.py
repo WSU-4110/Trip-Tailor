@@ -1,6 +1,7 @@
 from typing import Any
 
 from app.db import get_conn
+import random
 
 # Fetches all candidate places/activities for a destination city, filtering/scoring happens in Python service layer.
 def get_candidate_activities_for_city(city: str, region: str | None = None, ) -> list[dict[str, Any]]:
@@ -110,5 +111,9 @@ def get_alternate_candidates(
     """
     with get_conn() as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (city, region, region, exclude_place_ids, limit))
-            return cur.fetchall()
+            cur.execute(sql, (city, region, region, exclude_place_ids, 15))
+            results = cur.fetchall()
+    
+    if len(results) <= limit:
+        return results
+    return random.sample(results, limit)
